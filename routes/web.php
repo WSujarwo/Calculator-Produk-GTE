@@ -53,6 +53,9 @@ Route::get('/orderlist', function () {
     return view('orderlist');
 })->middleware(['auth', 'verified'])->name('orderlist');
 
+Route::get('/setting', function () {
+    return view('setting');
+})->middleware(['auth', 'verified'])->name('setting');
 
 
 

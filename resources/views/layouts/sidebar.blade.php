@@ -263,6 +263,16 @@
         </a>
         <span class="nav-tooltip">Database Product</span>
     </li>
+
+    <li class="nav-item">
+        <a href="{{ route('setting') }}"
+        class="nav-link {{ request()->routeIs('setting') ? 'active' : '' }}">
+            <span class="nav-icon material-symbols-rounded">settings</span>
+            <span class="nav-label">Setting</span>
+        </a>
+        <span class="nav-tooltip">Setting</span>
+    </li>
+
 @endrole
 
 

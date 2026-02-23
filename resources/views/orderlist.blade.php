@@ -9,7 +9,7 @@
                 <span class="font-semibold text-indigo-300">
                     {{ auth()->user()->getRoleNames()->first() }}
                 </span>
-            </p>
+            </p>    
         </div>
     </x-slot> -->
 
