@@ -15,22 +15,39 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="bg-gray-900 text-white">
+<body class="bg-gray-900 text-white antialiased">
 
-    <div class="flex">
+    <div class="flex min-h-screen">
+        {{-- 1. SIDEBAR --}}
         @auth
             @include('layouts.sidebar')
         @endauth
 
-        <div id="main-content" class="main-content flex-1 min-h-screen min-w-0">
-        {{-- Header --}}
-        @auth
-    @include('layouts.navigation')
-@endauth
+        {{-- 2. WRAPPER UNTUK NAV & KONTEN --}}
+        <div id="main-content" class="flex-1 flex flex-col min-w-0 transition-all duration-300">
+            
+            {{-- TOP NAVIGATION --}}
+            @auth
+                <div class="sticky top-0 z-40">
+                    @include('layouts.navigation')
+                </div>
+            @endauth
 
-            <main class="w-full app-main pt-24">
-               {{ $slot }}
-           </main>
+            {{-- HEADER (Judul Halaman) --}}
+            @if (isset($header))
+                <header class="bg-white border-b border-gray-200">
+                    <div class="py-4">
+                        {{ $header }}
+                    </div>
+                </header>
+            @endif
+
+            {{-- MAIN CONTENT --}}
+            <main class="flex-1 bg-gray-50 text-gray-900">
+                <div class="py-6">
+                    {{ $slot }}
+                </div>
+            </main>
         </div>
     </div>
 

@@ -100,12 +100,59 @@
 
     <li class="nav-item">
         
-    <a href="{{ route('dashboard') }}"
-           class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-            <span class="nav-icon material-symbols-rounded">storage</span>
-            <span class="nav-label">Database Product</span>
+        <li class="nav-item has-submenu 
+        {{ request()->routeIs(
+            'master.products.*',
+            'master.shapes.*',
+            'master.product-shapes.*',
+            'master.type-configs.*'
+        ) ? 'open' : '' }}">
+
+        <a href="#"
+        class="nav-link submenu-toggle 
+        {{ request()->routeIs(
+                'master.products.*',
+                'master.shapes.*',
+                'master.product-shapes.*',
+                'master.type-configs.*'
+        ) ? 'active' : '' }}">
+        
+        <span class="nav-icon material-symbols-rounded">storage</span>
+        <span class="nav-label">Database Product</span>
+        <span class="submenu-arrow material-symbols-rounded">expand_more</span>
         </a>
-        <span class="nav-tooltip">Database Product</span>
+
+        <ul class="submenu">
+
+            <li>
+                <a href="{{ route('master.products.index') }}"
+                class="{{ request()->routeIs('master.products.*') ? 'active' : '' }}">
+                    Products
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ route('master.shapes.index') }}"
+                class="{{ request()->routeIs('master.shapes.*') ? 'active' : '' }}">
+                    Shapes
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ route('master.product-shapes.index') }}"
+                class="{{ request()->routeIs('master.product-shapes.*') ? 'active' : '' }}">
+                    Product ↔ Shape
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ route('master.type-configs.index') }}"
+                class="{{ request()->routeIs('master.type-configs.*') ? 'active' : '' }}">
+                    Type / Configuration
+                </a>
+            </li>
+
+        </ul>
     </li>
 
     <li class="nav-item">
