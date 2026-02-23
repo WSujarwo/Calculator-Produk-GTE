@@ -10,6 +10,14 @@ use Illuminate\Http\Request;
 
 class ProductShapeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware("permission:master.product-shapes.view")->only(["index"]);
+        $this->middleware("permission:master.product-shapes.create")->only(["create", "store"]);
+        $this->middleware("permission:master.product-shapes.edit")->only(["edit", "update"]);
+        $this->middleware("permission:master.product-shapes.delete")->only(["destroy"]);
+    }
+
     public function index(Request $request)
     {
         $q = ProductShape::query()->with(['product','shape']);

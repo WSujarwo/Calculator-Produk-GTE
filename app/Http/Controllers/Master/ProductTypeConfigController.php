@@ -10,6 +10,14 @@ use Illuminate\Http\Request;
 
 class ProductTypeConfigController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware("permission:master.type-configs.view")->only(["index"]);
+        $this->middleware("permission:master.type-configs.create")->only(["create", "store"]);
+        $this->middleware("permission:master.type-configs.edit")->only(["edit", "update"]);
+        $this->middleware("permission:master.type-configs.delete")->only(["destroy"]);
+    }
+
     public function index(Request $request)
     {
         $q = ProductTypeConfig::query()->with(['product','shape']);

@@ -22,7 +22,7 @@ class RoleSeeder extends Seeder
             ['email' => 'admin@mail.com'],
             [
                 'name' => 'Admin',
-                'password' => Hash::make('admin417661')
+                'password' => Hash::make('admin123')
             ]
         );
         $adminUser->syncRoles($admin);

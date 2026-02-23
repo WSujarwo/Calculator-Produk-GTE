@@ -8,6 +8,14 @@ use Illuminate\Http\Request;
 
 class ShapeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware("permission:master.shapes.view")->only(["index"]);
+        $this->middleware("permission:master.shapes.create")->only(["create", "store"]);
+        $this->middleware("permission:master.shapes.edit")->only(["edit", "update"]);
+        $this->middleware("permission:master.shapes.delete")->only(["destroy"]);
+    }
+
     public function index(Request $request)
     {
         $q = Shape::query();

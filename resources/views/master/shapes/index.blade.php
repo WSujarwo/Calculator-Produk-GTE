@@ -53,11 +53,13 @@
                         Reset
                     </a>
 
-                    <a href="{{ route('master.shapes.create') }}"
-                       class="w-full inline-flex justify-center items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100">
-                        <span class="material-symbols-rounded text-[20px]">add</span>
-                        Create
-                    </a>
+                    @can('master.shapes.create')
+                        <a href="{{ route('master.shapes.create') }}"
+                           class="w-full inline-flex justify-center items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100">
+                            <span class="material-symbols-rounded text-[20px]">add</span>
+                            Create
+                        </a>
+                    @endcan
                 </div>
             </form>
         </div>
@@ -88,19 +90,23 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-right space-x-2">
-                                    <a href="{{ route('master.shapes.edit', $s) }}"
-                                       class="inline-flex items-center gap-1 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-900 hover:bg-gray-50">
-                                        <span class="material-symbols-rounded text-[18px]">edit</span> Edit
-                                    </a>
+                                    @can('master.shapes.edit')
+                                        <a href="{{ route('master.shapes.edit', $s) }}"
+                                           class="inline-flex items-center gap-1 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-900 hover:bg-gray-50">
+                                            <span class="material-symbols-rounded text-[18px]">edit</span> Edit
+                                        </a>
+                                    @endcan
 
-                                    <form action="{{ route('master.shapes.destroy', $s) }}" method="POST"
-                                          class="inline" onsubmit="return confirm('Yakin hapus shape ini?')">
-                                        @csrf @method('DELETE')
-                                        <button type="submit"
-                                                class="inline-flex items-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100">
-                                            <span class="material-symbols-rounded text-[18px]">delete</span> Delete
-                                        </button>
-                                    </form>
+                                    @can('master.shapes.delete')
+                                        <form action="{{ route('master.shapes.destroy', $s) }}" method="POST"
+                                              class="inline" onsubmit="return confirm('Yakin hapus shape ini?')">
+                                            @csrf @method('DELETE')
+                                            <button type="submit"
+                                                    class="inline-flex items-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100">
+                                                <span class="material-symbols-rounded text-[18px]">delete</span> Delete
+                                            </button>
+                                        </form>
+                                    @endcan
                                 </td>
                             </tr>
                         @empty

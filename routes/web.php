@@ -8,6 +8,7 @@ use App\Http\Controllers\Master\ShapeController;
 use App\Http\Controllers\Master\ProductShapeController;
 use App\Http\Controllers\Master\ProductTypeConfigController;
 use App\Http\Controllers\Master\ProductCatalogController;
+use App\Http\Controllers\Settings\RolePermissionController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -53,9 +54,11 @@ Route::get('/orderlist', function () {
     return view('orderlist');
 })->middleware(['auth', 'verified'])->name('orderlist');
 
-Route::get('/setting', function () {
-    return view('setting');
-})->middleware(['auth', 'verified'])->name('setting');
+Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
+    Route::get('/setting', [RolePermissionController::class, 'index'])->name('setting');
+    Route::put('/setting/roles/{role}', [RolePermissionController::class, 'updateRolePermissions'])->name('setting.roles.update');
+    Route::put('/setting/users/{user}', [RolePermissionController::class, 'updateUserRole'])->name('setting.users.update');
+});
 
 
 
@@ -83,7 +86,7 @@ Route::middleware(['auth','role:estimator'])->get('/estimator', function () {
 });
 
 // Master Data Routes
-Route::prefix('master')->name('master.')->group(function () {
+Route::prefix('master')->name('master.')->middleware('auth')->group(function () {
     Route::resource('products', ProductController::class)->except(['show']);
     Route::resource('shapes', ShapeController::class)->except(['show']);
 

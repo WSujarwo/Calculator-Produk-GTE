@@ -171,6 +171,15 @@
         <span class="nav-tooltip">Order List</span>
     </li>
 
+    <li class="nav-item">
+        <a href="{{ route('setting') }}"
+        class="nav-link {{ request()->routeIs('setting') ? 'active' : '' }}">
+            <span class="nav-icon material-symbols-rounded">admin_panel_settings</span>
+            <span class="nav-label">Role Access</span>
+        </a>
+        <span class="nav-tooltip">Role Access</span>
+    </li>
+
 @endrole
 
 
@@ -264,15 +273,6 @@
         <span class="nav-tooltip">Database Product</span>
     </li>
 
-    <li class="nav-item">
-        <a href="{{ route('setting') }}"
-        class="nav-link {{ request()->routeIs('setting') ? 'active' : '' }}">
-            <span class="nav-icon material-symbols-rounded">settings</span>
-            <span class="nav-label">Setting</span>
-        </a>
-        <span class="nav-tooltip">Setting</span>
-    </li>
-
 @endrole
 
 
@@ -311,12 +311,62 @@
             </a>
         </li>
     </ul>
+    
     <li class="nav-item">
-        <a href="#" class="nav-link">
-            <span class="nav-icon material-symbols-rounded">storage</span>
-            <span class="nav-label">Database Product</span>
+        
+        <li class="nav-item has-submenu 
+        {{ request()->routeIs(
+            'master.products.*',
+            'master.shapes.*',
+            'master.product-shapes.*',
+            'master.type-configs.*'
+        ) ? 'open' : '' }}">
+
+        <a href="#"
+        class="nav-link submenu-toggle 
+        {{ request()->routeIs(
+                'master.products.*',
+                'master.shapes.*',
+                'master.product-shapes.*',
+                'master.type-configs.*'
+        ) ? 'active' : '' }}">
+        
+        <span class="nav-icon material-symbols-rounded">storage</span>
+        <span class="nav-label">Database Product</span>
+        <span class="submenu-arrow material-symbols-rounded">expand_more</span>
         </a>
-        <span class="nav-tooltip">Database Product</span>
+
+        <ul class="submenu">
+
+            <li>
+                <a href="{{ route('master.products.index') }}"
+                class="{{ request()->routeIs('master.products.*') ? 'active' : '' }}">
+                    Products
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ route('master.shapes.index') }}"
+                class="{{ request()->routeIs('master.shapes.*') ? 'active' : '' }}">
+                    Shapes
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ route('master.product-shapes.index') }}"
+                class="{{ request()->routeIs('master.product-shapes.*') ? 'active' : '' }}">
+                    Product ↔ Shape
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ route('master.type-configs.index') }}"
+                class="{{ request()->routeIs('master.type-configs.*') ? 'active' : '' }}">
+                    Type / Configuration
+                </a>
+            </li>
+
+        </ul>
     </li>
 
     <li class="nav-item">

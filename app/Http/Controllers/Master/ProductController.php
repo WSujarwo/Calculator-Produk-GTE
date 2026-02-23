@@ -8,6 +8,14 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware("permission:master.products.view")->only(["index"]);
+        $this->middleware("permission:master.products.create")->only(["create", "store"]);
+        $this->middleware("permission:master.products.edit")->only(["edit", "update"]);
+        $this->middleware("permission:master.products.delete")->only(["destroy"]);
+    }
+
     public function index(Request $request)
     {
         $q = Product::query();
