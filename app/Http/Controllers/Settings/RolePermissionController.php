@@ -45,7 +45,7 @@ class RolePermissionController extends Controller
         $role->syncPermissions(array_values(array_unique(array_merge($unmanagedPermissions, $selected))));
 
         return redirect()
-            ->route('setting', ['role' => $role->name])
+            ->route('setting.role-access', ['role' => $role->name])
             ->with('success', "Permission untuk role '{$role->name}' berhasil diupdate.");
     }
 
@@ -57,7 +57,7 @@ class RolePermissionController extends Controller
 
         $user->syncRoles([$validated['role_name']]);
 
-        return redirect()->route('setting')->with('success', "Role user '{$user->name}' berhasil diupdate.");
+        return redirect()->route('setting.role-access')->with('success', "Role user '{$user->name}' berhasil diupdate.");
     }
 
     private function permissionRows(): array

@@ -35,7 +35,7 @@
                     <p class="text-sm text-gray-600">Pilih role, checklist privilege, lalu simpan.</p>
                 </div>
 
-                <form method="GET" action="{{ route('setting') }}" class="flex items-center gap-2">
+                <form method="GET" action="{{ route('setting.role-access') }}" class="flex items-center gap-2">
                     <label for="role" class="text-sm text-gray-600">Role</label>
                     <select id="role" name="role" onchange="this.form.submit()"
                             class="rounded-xl border-gray-200 focus:border-indigo-400 focus:ring-indigo-300 text-gray-900">
@@ -49,7 +49,7 @@
             </div>
 
             @if($selectedRole)
-                <form method="POST" action="{{ route('setting.roles.update', $selectedRole) }}" class="p-5 space-y-4">
+                <form method="POST" action="{{ route('setting.role-access.roles.update', $selectedRole) }}" class="p-5 space-y-4">
                     @csrf
                     @method('PUT')
 
@@ -142,7 +142,7 @@
                                 <td class="px-3 py-3 font-semibold">{{ $user->name }}</td>
                                 <td class="px-3 py-3 text-gray-700">{{ $user->email }}</td>
                                 <td class="px-3 py-3">
-                                    <form method="POST" action="{{ route('setting.users.update', $user) }}" class="flex items-center gap-2">
+                                    <form method="POST" action="{{ route('setting.role-access.users.update', $user) }}" class="flex items-center gap-2">
                                         @csrf
                                         @method('PUT')
                                         <select name="role_name"
