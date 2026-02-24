@@ -16,6 +16,9 @@ return [
             'master.type-configs' => 'Type / Configuration',
             'master.cost-products' => 'Cost Product',
             'master.materials' => 'Materials',
+            'master.companies' => 'Companies',
+            'master.marketings' => 'Marketings',
+            'master.quotations' => 'Quotations',
         ],
     ],
 ];

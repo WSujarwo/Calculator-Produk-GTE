@@ -14,6 +14,8 @@ use App\Http\Controllers\Settings\RolePermissionController;
 use App\Http\Controllers\Settings\SettingController;
 use App\Http\Controllers\Settings\MarketingController;
 use App\Http\Controllers\Settings\CustomerController;
+use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\QuotationController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -72,6 +74,10 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::get('/setting/role-access', [RolePermissionController::class, 'index'])->name('setting.role-access');
     Route::put('/setting/role-access/roles/{role}', [RolePermissionController::class, 'updateRolePermissions'])->name('setting.role-access.roles.update');
     Route::put('/setting/role-access/users/{user}', [RolePermissionController::class, 'updateUserRole'])->name('setting.role-access.users.update');
+
+    Route::resource('companies', CompanyController::class);
+    Route::resource('marketings', MarketingController::class);
+    Route::resource('quotations', QuotationController::class);
 });
 
 
