@@ -9,6 +9,7 @@ use App\Http\Controllers\Master\ProductShapeController;
 use App\Http\Controllers\Master\ProductTypeConfigController;
 use App\Http\Controllers\Master\ProductCatalogController;
 use App\Http\Controllers\Master\CostProductController;
+use App\Http\Controllers\Master\MaterialController;
 use App\Http\Controllers\Settings\RolePermissionController;
 
 Route::get('/', function () {
@@ -104,6 +105,11 @@ Route::prefix('master')->name('master.')->middleware('auth')->group(function () 
         ->parameters(['cost-products' => 'cost_product']);
     Route::post('cost-products/import', [CostProductController::class, 'import'])->name('cost-products.import');
     Route::get('cost-products-template', [CostProductController::class, 'template'])->name('cost-products.template');
+
+    // materials
+    Route::resource('materials', MaterialController::class)->except(['show']);
+    Route::post('materials/import', [MaterialController::class, 'import'])->name('materials.import');
+    Route::get('materials-template', [MaterialController::class, 'template'])->name('materials.template');
 });
 
 // Dropdown JSON (buat calculator)

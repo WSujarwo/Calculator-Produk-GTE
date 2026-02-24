@@ -106,7 +106,8 @@
             'master.shapes.*',
             'master.product-shapes.*',
             'master.type-configs.*',
-            'master.cost-products.*'
+            'master.cost-products.*',
+            'master.materials.*'
         ) ? 'open' : '' }}">
 
         <a href="#"
@@ -116,7 +117,8 @@
                 'master.shapes.*',
                 'master.product-shapes.*',
                 'master.type-configs.*',
-                'master.cost-products.*'
+                'master.cost-products.*',
+                'master.materials.*'
         ) ? 'active' : '' }}">
         
         <span class="nav-icon material-symbols-rounded">storage</span>
@@ -158,6 +160,13 @@
                 <a href="{{ route('master.cost-products.index') }}"
                 class="{{ request()->routeIs('master.cost-products.*') ? 'active' : '' }}">
                     Cost Product
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ route('master.materials.index') }}"
+                class="{{ request()->routeIs('master.materials.*') ? 'active' : '' }}">
+                    Materials
                 </a>
             </li>
 
@@ -329,7 +338,8 @@
             'master.shapes.*',
             'master.product-shapes.*',
             'master.type-configs.*',
-            'master.cost-products.*'
+            'master.cost-products.*',
+            'master.materials.*'
         ) ? 'open' : '' }}">
 
         <a href="#"
@@ -339,7 +349,8 @@
                 'master.shapes.*',
                 'master.product-shapes.*',
                 'master.type-configs.*',
-                'master.cost-products.*'
+                'master.cost-products.*',
+                'master.materials.*'
         ) ? 'active' : '' }}">
         
         <span class="nav-icon material-symbols-rounded">storage</span>
@@ -381,6 +392,13 @@
                 <a href="{{ route('master.cost-products.index') }}"
                 class="{{ request()->routeIs('master.cost-products.*') ? 'active' : '' }}">
                     Cost Product
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ route('master.materials.index') }}"
+                class="{{ request()->routeIs('master.materials.*') ? 'active' : '' }}">
+                    Materials
                 </a>
             </li>
 

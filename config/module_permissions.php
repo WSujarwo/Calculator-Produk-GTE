@@ -15,6 +15,7 @@ return [
             'master.product-shapes' => 'Product-Shape Mapping',
             'master.type-configs' => 'Type / Configuration',
             'master.cost-products' => 'Cost Product',
+            'master.materials' => 'Materials',
         ],
     ],
 ];
