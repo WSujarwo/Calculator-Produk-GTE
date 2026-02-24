@@ -8,6 +8,7 @@ use App\Http\Controllers\Master\ShapeController;
 use App\Http\Controllers\Master\ProductShapeController;
 use App\Http\Controllers\Master\ProductTypeConfigController;
 use App\Http\Controllers\Master\ProductCatalogController;
+use App\Http\Controllers\Master\CostProductController;
 use App\Http\Controllers\Settings\RolePermissionController;
 
 Route::get('/', function () {
@@ -97,6 +98,12 @@ Route::prefix('master')->name('master.')->middleware('auth')->group(function () 
     // type configs
     Route::resource('type-configs', ProductTypeConfigController::class)->except(['show'])
         ->parameters(['type-configs' => 'type_config']);
+
+    // cost product
+    Route::resource('cost-products', CostProductController::class)->except(['show'])
+        ->parameters(['cost-products' => 'cost_product']);
+    Route::post('cost-products/import', [CostProductController::class, 'import'])->name('cost-products.import');
+    Route::get('cost-products-template', [CostProductController::class, 'template'])->name('cost-products.template');
 });
 
 // Dropdown JSON (buat calculator)
