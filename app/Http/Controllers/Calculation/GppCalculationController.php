@@ -10,14 +10,21 @@ use Illuminate\Validation\Rule;
 
 class GppCalculationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('calculation.gpp', $this->buildViewData());
+        $quotationId = $request->query('quotation_id');
+        $currentInput = null;
+        if (! empty($quotationId) && is_numeric($quotationId)) {
+            $currentInput = ['quotation_id' => (int) $quotationId];
+        }
+
+        return view('calculation.gpp', $this->buildViewData(null, $currentInput));
     }
 
     public function validateInput(Request $request)
     {
         $validator = Validator::make($request->all(), [
+            'quotation_id' => ['required', 'integer', Rule::exists('quotations', 'id')],
             'type' => [
                 'required',
                 'string',
@@ -74,6 +81,7 @@ class GppCalculationController extends Controller
         $validator->validate();
 
         $input = [
+            'quotation_id' => (int) $request->input('quotation_id'),
             'type' => (string) $request->input('type'),
             'mesin' => str_pad((string) $request->input('mesin'), 2, '0', STR_PAD_LEFT),
             'size' => str_pad((string) $request->input('size'), 2, '0', STR_PAD_LEFT),
@@ -136,13 +144,23 @@ class GppCalculationController extends Controller
             })
             ->toArray();
 
-        $activeInput = $currentInput ?? [
+        $defaultInput = [
+            'quotation_id' => null,
             'type' => 'GTE9043AI',
             'mesin' => '24',
             'size' => '08',
             'berat' => 100,
             'kelebihan_pengiriman' => 20,
         ];
+        $activeInput = array_merge($defaultInput, $currentInput ?? []);
+
+        $selectedQuotation = null;
+        if (! empty($activeInput['quotation_id'])) {
+            $selectedQuotation = DB::table('quotations')
+                ->select('id', 'quotation_no')
+                ->where('id', (int) $activeInput['quotation_id'])
+                ->first();
+        }
 
         return [
             'types' => $types,
@@ -150,6 +168,7 @@ class GppCalculationController extends Controller
             'sizes' => $sizes,
             'mesinSizeMap' => $mesinSizeMap,
             'typeMesinSizeMap' => $typeMesinSizeMap,
+            'selectedQuotation' => $selectedQuotation,
             'defaultType' => 'GTE9043AI',
             'defaultMesin' => '24',
             'defaultSize' => '08',

@@ -30,6 +30,7 @@ class QuotationController extends Controller
 
     public function create()
     {
+        $returnTo = request()->query('return_to');
         $companies = Company::orderBy('company_name')->get();
         $marketings = Marketing::orderBy('name')->get();
         $customerOptions = $companies->map(function ($company) {
@@ -46,7 +47,7 @@ class QuotationController extends Controller
             ];
         })->values();
 
-        return view('settings.quotations.create', compact('companies', 'marketings', 'customerOptions', 'marketingOptions'));
+        return view('settings.quotations.create', compact('companies', 'marketings', 'customerOptions', 'marketingOptions', 'returnTo'));
     }
 
     public function store(Request $request)
@@ -65,6 +66,7 @@ class QuotationController extends Controller
             'price_validity_weeks' => 'nullable|integer|min:0',
             'company_address' => 'nullable|string',
             'result_status' => 'required|in:GAGAL,PENDING,SUKSES',
+            'return_to' => 'nullable|in:gpp',
         ]);
 
         // Auto generate quotation number
@@ -74,7 +76,7 @@ class QuotationController extends Controller
 
         $company = Company::find($validated['company_id']);
 
-        Quotation::create([
+        $quotation = Quotation::create([
             'quotation_no' => $quotationNo,
             'quotation_date' => $validated['quotation_date'],
             'revision_no' => $validated['revision_no'] ?? 0,
@@ -91,6 +93,12 @@ class QuotationController extends Controller
             'status' => 'DRAFT',
             'result_status' => $validated['result_status'],
         ]);
+
+        if (($validated['return_to'] ?? null) === 'gpp') {
+            return redirect()
+                ->route('calculation.gpp', ['quotation_id' => $quotation->id])
+                ->with('status', "Quotation {$quotation->quotation_no} berhasil dibuat. Lanjut input produk GPP.");
+        }
 
         return redirect()->route('settings.quotations.index')
             ->with('success', 'Quotation created successfully.');
