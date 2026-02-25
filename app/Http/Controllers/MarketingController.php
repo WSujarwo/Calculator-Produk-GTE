@@ -9,10 +9,10 @@ class MarketingController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:master.marketing.view')->only(['index']);
-        $this->middleware('permission:master.marketing.create')->only(['create', 'store', 'import']);
-        $this->middleware('permission:master.marketing.edit')->only(['edit', 'update']);
-        $this->middleware('permission:master.marketing.delete')->only(['destroy']);
+        $this->middleware('permission:settings.marketings.view')->only(['index']);
+        $this->middleware('permission:settings.marketings.create')->only(['create', 'store', 'import']);
+        $this->middleware('permission:settings.marketings.edit')->only(['edit', 'update']);
+        $this->middleware('permission:settings.marketings.delete')->only(['destroy']);
     }
 
     public function index()

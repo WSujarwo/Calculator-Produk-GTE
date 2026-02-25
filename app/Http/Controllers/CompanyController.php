@@ -9,10 +9,10 @@ class CompanyController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:master.companies.view')->only(['index']);
-        $this->middleware('permission:master.companies.create')->only(['create', 'store', 'import']);
-        $this->middleware('permission:master.companies.edit')->only(['edit', 'update']);
-        $this->middleware('permission:master.companies.delete')->only(['destroy']);
+        $this->middleware('permission:settings.companies.view')->only(['index']);
+        $this->middleware('permission:settings.companies.create')->only(['create', 'store', 'import']);
+        $this->middleware('permission:settings.companies.edit')->only(['edit', 'update']);
+        $this->middleware('permission:settings.companies.delete')->only(['destroy']);
     }
     
     public function index()

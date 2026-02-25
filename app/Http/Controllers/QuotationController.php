@@ -12,10 +12,10 @@ class QuotationController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:master.quotations.view')->only(['index']);
-        $this->middleware('permission:master.quotations.create')->only(['create', 'store', 'import']);
-        $this->middleware('permission:master.quotations.edit')->only(['edit', 'update']);
-        $this->middleware('permission:master.quotations.delete')->only(['destroy']);
+        $this->middleware('permission:settings.quotations.view')->only(['index']);
+        $this->middleware('permission:settings.quotations.create')->only(['create', 'store', 'import']);
+        $this->middleware('permission:settings.quotations.edit')->only(['edit', 'update']);
+        $this->middleware('permission:settings.quotations.delete')->only(['destroy']);
     }
 
     public function index()
