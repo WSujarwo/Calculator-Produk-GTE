@@ -18,12 +18,12 @@ class MarketingController extends Controller
     public function index()
     {
         $marketings = Marketing::latest()->paginate(10);
-        return view('marketings.index', compact('marketings'));
+        return view('settings.marketings.index', compact('marketings'));
     }
 
     public function create()
     {
-        return view('marketings.create');
+        return view('settings.marketings.create');
     }
 
     public function store(Request $request)
@@ -36,13 +36,13 @@ class MarketingController extends Controller
 
         Marketing::create($request->all());
 
-        return redirect()->route('marketings.index')
+        return redirect()->route('settings.marketings.index')
             ->with('success', 'Marketing created successfully.');
     }
 
     public function edit(Marketing $marketing)
     {
-        return view('marketings.edit', compact('marketing'));
+        return view('settings.marketings.edit', compact('marketing'));
     }
 
     public function update(Request $request, Marketing $marketing)
@@ -55,7 +55,7 @@ class MarketingController extends Controller
 
         $marketing->update($request->all());
 
-        return redirect()->route('marketings.index')
+        return redirect()->route('settings.marketings.index')
             ->with('success', 'Marketing updated successfully.');
     }
 
@@ -63,7 +63,7 @@ class MarketingController extends Controller
     {
         $marketing->delete();
 
-        return redirect()->route('marketings.index')
+        return redirect()->route('settings.marketings.index')
             ->with('success', 'Marketing deleted successfully.');
     }
 }

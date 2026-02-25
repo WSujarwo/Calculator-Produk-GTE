@@ -61,7 +61,21 @@
                     <p class="mt-1 text-sm text-slate-600 min-h-12">
                         Kelola data marketing, tambah akun baru, edit informasi, dan hapus data.
                     </p>
-                    <a href="{{ route('setting.marketing.index') }}"
+                    <a href="{{ route('settings.marketings.index') }}"
+                       class="mt-4 inline-flex items-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+                        Open Module
+                    </a>
+                </section>
+
+                <section class="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition">
+                    <div class="h-10 w-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+                        P
+                    </div>
+                    <h4 class="mt-4 text-lg font-semibold text-slate-900">Perusahaan</h4>
+                    <p class="mt-1 text-sm text-slate-600 min-h-12">
+                        Kelola data Perusahaan, tambah akun baru, edit informasi, dan hapus data.
+                    </p>
+                    <a href="{{ route('settings.companies.index') }}"
                        class="mt-4 inline-flex items-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
                         Open Module
                     </a>

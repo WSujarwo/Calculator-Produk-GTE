@@ -12,9 +12,9 @@ use App\Http\Controllers\Master\CostProductController;
 use App\Http\Controllers\Master\MaterialController;
 use App\Http\Controllers\Settings\RolePermissionController;
 use App\Http\Controllers\Settings\SettingController;
-use App\Http\Controllers\Settings\MarketingController;
 use App\Http\Controllers\Settings\CustomerController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\Calculation\GppCalculationController;
 
@@ -65,11 +65,6 @@ Route::get('/orderlist', function () {
 Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::get('/setting', [SettingController::class, 'index'])->name('setting');
 
-    Route::get('/setting/marketing', [MarketingController::class, 'index'])->name('setting.marketing.index');
-    Route::post('/setting/marketing', [MarketingController::class, 'store'])->name('setting.marketing.store');
-    Route::put('/setting/marketing/{id}', [MarketingController::class, 'update'])->name('setting.marketing.update');
-    Route::delete('/setting/marketing/{id}', [MarketingController::class, 'destroy'])->name('setting.marketing.destroy');
-
     Route::get('/setting/customer', [CustomerController::class, 'index'])->name('setting.customer.index');
     Route::get('/setting/gpp-validation', [SettingController::class, 'gppValidation'])->name('setting.gpp-validation');
     Route::post('/setting/gpp-validation/store', [SettingController::class, 'gppValidationStore'])->name('setting.gpp-validation.store');
@@ -78,10 +73,6 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::get('/setting/role-access', [RolePermissionController::class, 'index'])->name('setting.role-access');
     Route::put('/setting/role-access/roles/{role}', [RolePermissionController::class, 'updateRolePermissions'])->name('setting.role-access.roles.update');
     Route::put('/setting/role-access/users/{user}', [RolePermissionController::class, 'updateUserRole'])->name('setting.role-access.users.update');
-
-    Route::resource('companies', CompanyController::class);
-    Route::resource('marketings', MarketingController::class);
-    Route::resource('quotations', QuotationController::class);
 });
 
 Route::middleware('auth')->group(function () {
@@ -132,6 +123,14 @@ Route::prefix('master')->name('master.')->middleware('auth')->group(function () 
     Route::resource('companies', CompanyController::class);
     Route::resource('marketings', MarketingController::class);
     Route::resource('quotations', QuotationController::class);
+});
+
+Route::prefix('settings')->name('settings.')->group(function () {
+
+    Route::resource('companies', CompanyController::class);
+    Route::resource('marketings', MarketingController::class);
+    Route::resource('quotations', QuotationController::class);
+
 });
 
 // Dropdown JSON (buat calculator)

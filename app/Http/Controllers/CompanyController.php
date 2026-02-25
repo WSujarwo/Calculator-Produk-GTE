@@ -18,12 +18,12 @@ class CompanyController extends Controller
     public function index()
     {
         $companies = Company::latest()->paginate(10);
-        return view('companies.index', compact('companies'));
+        return view('settings.companies.index', compact('companies'));
     }
 
     public function create()
     {
-        return view('companies.create');
+        return view('settings.companies.create');
     }
 
     public function store(Request $request)
@@ -36,13 +36,13 @@ class CompanyController extends Controller
 
         Company::create($request->all());
 
-        return redirect()->route('companies.index')
+        return redirect()->route('settings.companies.index')
             ->with('success', 'Company created successfully.');
     }
 
     public function edit(Company $company)
     {
-        return view('companies.edit', compact('company'));
+        return view('settings.companies.edit', compact('company'));
     }
 
     public function update(Request $request, Company $company)
@@ -55,7 +55,7 @@ class CompanyController extends Controller
 
         $company->update($request->all());
 
-        return redirect()->route('companies.index')
+        return redirect()->route('settings.companies.index')
             ->with('success', 'Company updated successfully.');
     }
 
@@ -63,7 +63,7 @@ class CompanyController extends Controller
     {
         $company->delete();
 
-        return redirect()->route('companies.index')
+        return redirect()->route('settings.companies.index')
             ->with('success', 'Company deleted successfully.');
     }
 }
