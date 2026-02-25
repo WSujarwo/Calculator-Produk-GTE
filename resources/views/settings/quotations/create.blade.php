@@ -18,16 +18,18 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-700">Result Status</label>
-                        <div class="mt-2 flex flex-wrap items-center gap-4 rounded-xl border border-slate-300 px-4 py-2.5">
+                        <input type="hidden" name="result_status" value="PENDING">
+                         <div class="mt-2 flex flex-wrap items-center gap-4 rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5" >
                             @foreach (['GAGAL', 'PENDING', 'SUKSES'] as $status)
                                 <label class="inline-flex items-center gap-2 text-sm text-slate-700">
                                     <input type="radio" name="result_status" value="{{ $status }}"
                                            class="border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                                           @checked(old('result_status', 'PENDING') === $status)>
+                                           @checked(old('result_status', 'PENDING') === $status)
+                                           disabled>
                                     {{ $status }}
                                 </label>
                             @endforeach
-                        </div>
+                        </div> 
                         @error('result_status')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror

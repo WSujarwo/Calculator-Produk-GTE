@@ -141,7 +141,7 @@ class GppCalculationController extends Controller
             'mesin' => '24',
             'size' => '08',
             'berat' => 100,
-            'kelebihan_pengiriman' => 5,
+            'kelebihan_pengiriman' => 20,
         ];
 
         return [
@@ -196,8 +196,11 @@ class GppCalculationController extends Controller
 
         $kodeBarang = $kodeRow->col_d ?? '-';
 
+        // Updated sheet formula: kelebihan pengiriman mengikuti 20% dari input berat.
+        $kelebihanBerat = $berat * 0.20;
+
         $spareBerat = ($density > 0 && $sizeNum > 0)
-            ? (((($sizeNum * $sizeNum) * $sparePanjang * $density) / 1000) + $kelebihan)
+            ? (((($sizeNum * $sizeNum) * $sparePanjang * $density) / 1000) + $kelebihanBerat)
             : 0;
 
         $beratPlusSpare = $berat + $spareBerat;
@@ -241,7 +244,7 @@ class GppCalculationController extends Controller
                 'berat_kebutuhan_kg' => $beratKebutuhan,
             ];
 
-            // Excel total raw material uses E13:E17 (Core Cord excluded from total row).
+            // Total raw material follows sheet SUM(D13:D17)/SUM(E13:E17), excluding Core Cord.
             if ($key !== 'core_cord') {
                 $totalRawPercent += $percent;
                 $totalRawWeight += $beratKebutuhan;
@@ -280,7 +283,7 @@ class GppCalculationController extends Controller
 
             if ($key === 'core_cord') {
                 $totalBenang = ($bobbinFull > 0 ? $bobbinFullWeight : 0) + $bobbinNotFull;
-                $desc = sprintf('total benang yang digunakan adalah %.1f', $totalBenang);
+                $desc = sprintf('total benang yang digunakan adalah %.2f kg', $totalBenang);
             }
 
             $bobbinRows[$key] = [
@@ -386,11 +389,11 @@ class GppCalculationController extends Controller
         $materialRows = [];
         $materialTotalWeight = 0;
 
-        // Temporary hardcoded pricing to make Harga Material visible before master pricing is finalized.
+        // Updated from latest calculation sheet.
         $hardcodedPrices = [
-            'YP-03NH-NC-GTE-1P' => ['origin_per_kg' => 392000, 'standard_per_kg' => 350000],
-            'YP-07NG-NC-GTE-1P' => ['origin_per_kg' => 392000, 'standard_per_kg' => 350000],
-            'YI-05NG-NC-6YL-1P' => ['origin_per_kg' => null, 'standard_per_kg' => 1845000],
+            'YP-03NH-NC-GTE-1P' => ['origin_per_kg' => 848300, 'standard_per_kg' => 1737000],
+            'YP-07NG-NC-GTE-1P' => ['origin_per_kg' => 848300, 'standard_per_kg' => 1737000],
+            'YI-05NG-NC-6YL-1P' => ['origin_per_kg' => 970700, 'standard_per_kg' => 1519000],
             '0' => ['origin_per_kg' => null, 'standard_per_kg' => null],
         ];
 
@@ -430,31 +433,59 @@ class GppCalculationController extends Controller
 
         $materialRows = array_slice($materialRows, 0, 4);
 
-        $materialOriginTotal = 41175680.0;
-        $materialStandardTotal = 46453940.0;
+        $materialOriginTotal = array_sum(array_column($materialRows, 'harga_origin'));
+        $materialStandardTotal = array_sum(array_column($materialRows, 'harga_standard'));
+
+        // Sheet pricing maps by material-row order (Material 1/2/3), not by material prefix.
+        $nonZeroMaterialRows = array_values(array_filter(
+            $materialRows,
+            fn ($row) => ($row['material'] ?? '0') !== '0' && (float) ($row['berat_total_kg'] ?? 0) > 0
+        ));
+
+        $slotWeights = [
+            'slot1' => (float) ($nonZeroMaterialRows[0]['berat_total_kg'] ?? 0),
+            'slot2' => (float) ($nonZeroMaterialRows[1]['berat_total_kg'] ?? 0),
+            'slot3' => (float) ($nonZeroMaterialRows[2]['berat_total_kg'] ?? 0),
+        ];
+
         $priceRows = [
             [
                 'usd' => 49.9,
-                'origin_per_kg' => 392000,
-                'standard_per_kg' => 350000,
-                'harga_origin' => 41175680,
-                'harga_standard' => 36764000,
+                'origin_per_kg' => 848300,
+                'standard_per_kg' => 1737000,
+                'berat_kg' => $slotWeights['slot1'],
             ],
             [
                 'usd' => 57.1,
                 'origin_per_kg' => 970700,
                 'standard_per_kg' => 1519000,
-                'harga_origin' => 0,
-                'harga_standard' => 0,
+                'berat_kg' => $slotWeights['slot2'],
             ],
             [
                 'usd' => null,
                 'origin_per_kg' => null,
                 'standard_per_kg' => 1845000,
-                'harga_origin' => 0,
-                'harga_standard' => 9689940,
+                'berat_kg' => $slotWeights['slot3'],
             ],
         ];
+
+        foreach ($priceRows as &$priceRow) {
+            $berat = (float) ($priceRow['berat_kg'] ?? 0);
+            $originPerKg = $priceRow['origin_per_kg'];
+            $standardPerKg = $priceRow['standard_per_kg'];
+            $priceRow['harga_origin'] = is_null($originPerKg) ? null : ($berat * (float) $originPerKg);
+            $priceRow['harga_standard'] = is_null($standardPerKg) ? null : ($berat * (float) $standardPerKg);
+        }
+        unset($priceRow);
+
+        $materialOriginTotal = array_sum(array_map(
+            fn ($row) => (float) ($row['harga_origin'] ?? 0),
+            $priceRows
+        ));
+        $materialStandardTotal = array_sum(array_map(
+            fn ($row) => (float) ($row['harga_standard'] ?? 0),
+            $priceRows
+        ));
 
         $prosesTotal = $durasiGulungCalc['total_cost']
             + $setupCalc['total_cost']
