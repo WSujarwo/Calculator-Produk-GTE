@@ -13,6 +13,7 @@ use App\Http\Controllers\Master\MaterialController;
 use App\Http\Controllers\Settings\RolePermissionController;
 use App\Http\Controllers\Settings\SettingController;
 use App\Http\Controllers\Settings\CustomerController;
+use App\Http\Controllers\Settings\EjmValidationController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\QuotationController;
@@ -69,6 +70,13 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::get('/setting/gpp-validation', [SettingController::class, 'gppValidation'])->name('setting.gpp-validation');
     Route::post('/setting/gpp-validation/store', [SettingController::class, 'gppValidationStore'])->name('setting.gpp-validation.store');
     Route::post('/setting/gpp-validation/update', [SettingController::class, 'gppValidationUpdate'])->name('setting.gpp-validation.update');
+    Route::get('/setting/ejm-validation', [EjmValidationController::class, 'index'])->name('setting.ejm-validation.index');
+    Route::get('/setting/ejm-validation/create', [EjmValidationController::class, 'create'])->name('setting.ejm-validation.create');
+    Route::get('/setting/ejm-validation/template/csv', [EjmValidationController::class, 'templateCsv'])->name('setting.ejm-validation.template.csv');
+    Route::get('/setting/ejm-validation/template/excel', [EjmValidationController::class, 'templateExcel'])->name('setting.ejm-validation.template.excel');
+    Route::post('/setting/ejm-validation/store', [EjmValidationController::class, 'store'])->name('setting.ejm-validation.store');
+    Route::post('/setting/ejm-validation/update', [EjmValidationController::class, 'update'])->name('setting.ejm-validation.update');
+    Route::post('/setting/ejm-validation/import', [EjmValidationController::class, 'import'])->name('setting.ejm-validation.import');
 
     Route::get('/setting/role-access', [RolePermissionController::class, 'index'])->name('setting.role-access');
     Route::put('/setting/role-access/roles/{role}', [RolePermissionController::class, 'updateRolePermissions'])->name('setting.role-access.roles.update');

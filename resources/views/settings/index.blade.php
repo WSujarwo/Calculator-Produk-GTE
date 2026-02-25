@@ -19,7 +19,7 @@
                 <div class="grid grid-cols-3 gap-3 text-center">
                     <div class="rounded-2xl bg-white/10 px-4 py-3">
                         <p class="text-xs text-slate-200">Modules</p>
-                        <p class="text-xl font-bold">4</p>
+                        <p class="text-xl font-bold">5</p>
                     </div>
                     <div class="rounded-2xl bg-white/10 px-4 py-3">
                         <p class="text-xs text-slate-200">Status</p>
@@ -105,6 +105,20 @@
                     </p>
                     <a href="{{ route('setting.gpp-validation') }}"
                        class="mt-4 inline-flex items-center rounded-xl bg-cyan-600 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-700">
+                        Open Module
+                    </a>
+                </section>
+
+                <section class="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition">
+                    <div class="h-10 w-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                        E
+                    </div>
+                    <h4 class="mt-4 text-lg font-semibold text-slate-900">Validasi Data EJM</h4>
+                    <p class="mt-1 text-sm text-slate-600 min-h-12">
+                        Kelola data validasi EJM termasuk create/edit manual dan import CSV/XLSX berbasis NB.
+                    </p>
+                    <a href="{{ route('setting.ejm-validation.index') }}"
+                       class="mt-4 inline-flex items-center rounded-xl bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700">
                         Open Module
                     </a>
                 </section>
