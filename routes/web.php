@@ -16,6 +16,7 @@ use App\Http\Controllers\Settings\MarketingController;
 use App\Http\Controllers\Settings\CustomerController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\QuotationController;
+use App\Http\Controllers\Calculation\GppCalculationController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -33,9 +34,8 @@ Route::get('/calculation/rti', function () {
     return view('calculation.rti');
 })->name('calculation.rti');
 
-Route::get('/calculation/gpp', function () {
-    return view('calculation.gpp');
-})->name('calculation.gpp');
+Route::get('/calculation/gpp', [GppCalculationController::class, 'index'])->name('calculation.gpp');
+Route::post('/calculation/gpp/validate', [GppCalculationController::class, 'validateInput'])->name('calculation.gpp.validate');
 
 Route::get('/calculation/ejm', function () {
     return view('calculation.ejm');
@@ -79,10 +79,6 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::resource('marketings', MarketingController::class);
     Route::resource('quotations', QuotationController::class);
 });
-
-Route::get('/calculation/gpp', function () {
-    return view('calculation.gpp');
-})->name('calculation.gpp');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
