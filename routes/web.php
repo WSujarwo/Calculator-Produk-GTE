@@ -13,6 +13,7 @@ use App\Http\Controllers\Master\MaterialController;
 use App\Http\Controllers\Settings\RolePermissionController;
 use App\Http\Controllers\Settings\SettingController;
 use App\Http\Controllers\Settings\CustomerController;
+use App\Http\Controllers\Settings\EjmExpansionJointController;
 use App\Http\Controllers\Settings\EjmValidationController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\MarketingController;
@@ -77,6 +78,11 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::post('/setting/ejm-validation/store', [EjmValidationController::class, 'store'])->name('setting.ejm-validation.store');
     Route::post('/setting/ejm-validation/update', [EjmValidationController::class, 'update'])->name('setting.ejm-validation.update');
     Route::post('/setting/ejm-validation/import', [EjmValidationController::class, 'import'])->name('setting.ejm-validation.import');
+    Route::get('/setting/ejm-expansion-joint', [EjmExpansionJointController::class, 'index'])->name('setting.ejm-expansion-joint.index');
+    Route::get('/setting/ejm-expansion-joint/create', [EjmExpansionJointController::class, 'create'])->name('setting.ejm-expansion-joint.create');
+    Route::post('/setting/ejm-expansion-joint/store', [EjmExpansionJointController::class, 'store'])->name('setting.ejm-expansion-joint.store');
+    Route::post('/setting/ejm-expansion-joint/update', [EjmExpansionJointController::class, 'update'])->name('setting.ejm-expansion-joint.update');
+    Route::post('/setting/ejm-expansion-joint/import', [EjmExpansionJointController::class, 'import'])->name('setting.ejm-expansion-joint.import');
 
     Route::get('/setting/role-access', [RolePermissionController::class, 'index'])->name('setting.role-access');
     Route::put('/setting/role-access/roles/{role}', [RolePermissionController::class, 'updateRolePermissions'])->name('setting.role-access.roles.update');

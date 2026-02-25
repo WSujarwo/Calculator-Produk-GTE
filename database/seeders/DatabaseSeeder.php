@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             RmYarnPer10GrGppSeeder::class,
             DurasiProsesValidationGppSeeder::class,
             DataValidasiEjmActualDesainCalculationSeeder::class,
+            DataValidasiEjmExpansionJointSeeder::class,
         ]);
     }
 }
