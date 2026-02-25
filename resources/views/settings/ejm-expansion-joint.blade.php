@@ -40,11 +40,19 @@
 
             <section class="xl:col-span-9 rounded-2xl border border-slate-200 bg-white shadow-sm">
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
-                    <h3 class="font-semibold text-slate-900">Data Expansion Joint</h3>
+                    <h3 class="font-semibold text-slate-900">EXPANSION JOINT METAL</h3>
                     <div class="flex gap-2">
                         <a href="{{ route('setting.ejm-expansion-joint.create') }}"
                            class="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
                             + Add Data
+                        </a>
+                        <a href="{{ route('setting.ejm-expansion-joint.template.csv') }}"
+                           class="inline-flex items-center rounded-lg bg-slate-700 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800">
+                            Template CSV
+                        </a>
+                        <a href="{{ route('setting.ejm-expansion-joint.template.excel') }}"
+                           class="inline-flex items-center rounded-lg bg-slate-700 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800">
+                            Template Excel
                         </a>
                         <button type="button" id="openImportModal"
                                 class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
@@ -53,75 +61,128 @@
                     </div>
                 </div>
 
-                <div class="overflow-x-auto overflow-y-auto max-h-[70vh]">
-                    <table class="min-w-[1800px] text-sm border-collapse">
-                    <thead class="sticky top-0 z-10 bg-slate-100">
-                        <tr class="text-slate-900">
-                            <th class="px-3 py-2 border border-slate-300">Aksi</th>
-                            <th class="px-3 py-2 border border-slate-300">Shape</th>
-                            <th class="px-3 py-2 border border-slate-300">Size Code</th>
-                            <th class="px-3 py-2 border border-slate-300">NB</th>
-                            <th class="px-3 py-2 border border-slate-300">Width</th>
-                            <th class="px-3 py-2 border border-slate-300">Length</th>
-                            <th class="px-3 py-2 border border-slate-300">TL/Side</th>
-                            <th class="px-3 py-2 border border-slate-300">TL Qty</th>
-                            <th class="px-3 py-2 border border-slate-300">Spacer Width</th>
-                            <th class="px-3 py-2 border border-slate-300">Spacer Qty</th>
-                            <th class="px-3 py-2 border border-slate-300">Tool Radius</th>
-                            <th class="px-3 py-2 border border-slate-300">Tool Radius Qty</th>
-                            <th class="px-3 py-2 border border-slate-300">Pitch EJMA</th>
-                            <th class="px-3 py-2 border border-slate-300">Pitch GTE</th>
-                            <th class="px-3 py-2 border border-slate-300">Total TL</th>
-                            <th class="px-3 py-2 border border-slate-300">Total Spacer</th>
-                            <th class="px-3 py-2 border border-slate-300">Total Tool Radius</th>
-                            <th class="px-3 py-2 border border-slate-300">TL+Spacer+Tool</th>
-                            <th class="px-3 py-2 border border-slate-300">Gap</th>
-                            <th class="px-3 py-2 border border-slate-300">Can Length</th>
-                            <th class="px-3 py-2 border border-slate-300">Effective From</th>
-                            <th class="px-3 py-2 border border-slate-300">Effective To</th>
-                            <th class="px-3 py-2 border border-slate-300">Active</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($rows as $row)
-                            <tr class="hover:bg-slate-50">
-                                <td class="px-3 py-2 border border-slate-200">
-                                    <a href="{{ route('setting.ejm-expansion-joint.index', ['edit' => $row->id]) }}"
-                                       class="inline-flex items-center rounded-lg border border-indigo-200 bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">
-                                        Edit
-                                    </a>
-                                </td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->shape_code }}</td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->size_code ?? '-' }}</td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->nb ?? '-' }}</td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->width_mm ?? '-' }}</td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->length_mm ?? '-' }}</td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->tl_per_side_mm ?? '-' }}</td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->tl_qty ?? '-' }}</td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->spacer_width_mm ?? '-' }}</td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->spacer_qty ?? '-' }}</td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->tool_radius_mm ?? '-' }}</td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->tool_radius_qty ?? '-' }}</td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->pitch_ejma_mm ?? '-' }}</td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->pitch_gte_mm ?? '-' }}</td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->total_tl_mm ?? '-' }}</td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->total_spacer_mm ?? '-' }}</td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->total_tool_radius_mm ?? '-' }}</td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->tl_spacer_tool_total_mm ?? '-' }}</td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->gap_mm ?? '-' }}</td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->can_length_mm ?? '-' }}</td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->effective_from ?? '-' }}</td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->effective_to ?? '-' }}</td>
-                                <td class="px-3 py-2 border border-slate-200">{{ $row->is_active ? 'Yes' : 'No' }}</td>
+                <div class="overflow-x-auto overflow-y-auto max-h-[72vh]">
+                    <table class="min-w-[2800px] text-sm border-collapse">
+                        <thead class="sticky top-0 z-10">
+                            <tr class="bg-emerald-100 text-slate-900">
+                                <th rowspan="2" class="px-2 py-2 border border-slate-300">Aksi</th>
+
+                                <th colspan="4" class="px-2 py-2 border border-slate-300 text-center">SIZE</th>
+
+                                {{-- EXPANSION JOINT METAL: 25 kolom --}}
+                                <th colspan="25" class="px-2 py-2 border border-slate-300 text-center">EXPANSION JOINT METAL</th>
+
+                                {{-- CIRCUMFERENCE: 3 kolom --}}
+                                <th colspan="3" class="px-2 py-2 border border-slate-300 text-center">CIRCUMFERENCE</th>
+
+                                {{-- CAN LENGTH: 1 kolom --}}
+                                <th colspan="1" class="px-2 py-2 border border-slate-300 text-center">CAN LENGTH</th>
+
+                                {{-- CIRCUMFERENCE COLLAR: 1 kolom --}}
+                                <th colspan="1" class="px-2 py-2 border border-slate-300 text-center">CIRCUMFERENCE COLLAR</th>
                             </tr>
-                        @empty
-                            <tr>
-                                <td class="px-3 py-6 text-sm text-slate-500 border border-slate-200" colspan="23">
-                                    Belum ada data expansion joint.
-                                </td>
+
+                            <tr class="bg-amber-100 text-slate-900">
+                                {{-- SIZE --}}
+                                <th class="px-2 py-2 border border-slate-300">INCH</th>
+                                <th class="px-2 py-2 border border-slate-300">NB</th>
+                                <th class="px-2 py-2 border border-slate-300">WIDTH</th>
+                                <th class="px-2 py-2 border border-slate-300">LENGTH</th>
+
+                                {{-- EXPANSION JOINT METAL (25) --}}
+                                <th class="px-2 py-2 border border-slate-300">ID</th>
+                                <th class="px-2 py-2 border border-slate-300">OD</th>
+                                <th class="px-2 py-2 border border-slate-300">THK</th>
+                                <th class="px-2 py-2 border border-slate-300">LY</th>
+                                <th class="px-2 py-2 border border-slate-300">NOC (Default)</th>
+                                <th class="px-2 py-2 border border-slate-300">LC</th>
+                                <th class="px-2 py-2 border border-slate-300">TC</th>
+                                <th class="px-2 py-2 border border-slate-300">P</th>
+                                <th class="px-2 py-2 border border-slate-300">TR</th>
+                                <th class="px-2 py-2 border border-slate-300">R</th>
+                                <th class="px-2 py-2 border border-slate-300">OAL_B</th>
+                                <th class="px-2 py-2 border border-slate-300">BL</th>
+                                <th class="px-2 py-2 border border-slate-300">TL</th>
+                                <th class="px-2 py-2 border border-slate-300">SLC</th>
+                                <th class="px-2 py-2 border border-slate-300">LPE</th>
+                                <th class="px-2 py-2 border border-slate-300">PRESS_MPA</th>
+                                <th class="px-2 py-2 border border-slate-300">TEMP_C</th>
+                                <th class="px-2 py-2 border border-slate-300">AXIAL_MM</th>
+                                <th class="px-2 py-2 border border-slate-300">LSR_N_PER_MM</th>
+                                <th class="px-2 py-2 border border-slate-300">MP_CI_MPA</th>
+                                <th class="px-2 py-2 border border-slate-300">MP_II_MPA</th>
+                                <th class="px-2 py-2 border border-slate-300">MLC</th>
+                                <th class="px-2 py-2 border border-slate-300">GPF</th>
+                                <th class="px-2 py-2 border border-slate-300">OAL</th>
+                                <th class="px-2 py-2 border border-slate-300">AL</th>
+
+                                {{-- CIRCUMFERENCE --}}
+                                <th class="px-2 py-2 border border-slate-300">WIDTH1</th>
+                                <th class="px-2 py-2 border border-slate-300">WIDTH2</th>
+                                <th class="px-2 py-2 border border-slate-300">SPARE</th>
+
+                                {{-- CAN LENGTH --}}
+                                <th class="px-2 py-2 border border-slate-300">mm</th>
+
+                                {{-- CIRCUMFERENCE COLLAR --}}
+                                <th class="px-2 py-2 border border-slate-300">mm</th>
                             </tr>
-                        @endforelse
-                    </tbody>
+                        </thead>
+                        <tbody>
+                            @forelse ($rows as $row)
+                                <tr class="hover:bg-slate-50">
+                                    <td class="px-2 py-2 border border-slate-200">
+                                        <a href="{{ route('setting.ejm-expansion-joint.index', ['edit' => $row->id]) }}"
+                                           class="inline-flex items-center rounded-lg border border-indigo-200 bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">
+                                            Edit
+                                        </a>
+                                    </td>
+                                    <td class="px-2 py-2 border border-slate-200">{{ $row->inch }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->nb }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->width }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->length }}</td>
+
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->id_mm }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->od_mm }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->thk }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->ly }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->noc }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->lc }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->tc }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->p }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->tr }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->r }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->oal_b }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->bl }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->tl }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->slc }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->lpe }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->pres }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->temp_c }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->axial_m }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->lsr_n_per }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->mp_ci_mpa }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->mp_ii_mpa }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->mlc }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->gpf }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->oal }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->al }}</td>
+
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->width1 }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->width2 }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->spare }}</td>
+
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->can_length }}</td>
+                                        <td class="px-2 py-2 border border-slate-200">{{ $row->circumference_collar }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td class="px-3 py-6 text-sm text-slate-500 border border-slate-200" colspan="36">
+                                        Belum ada data expansion joint.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
                     </table>
                 </div>
 
@@ -138,21 +199,12 @@
                 <h3 class="text-lg font-semibold text-slate-900">Create Expansion Joint</h3>
                 <a href="{{ route('setting.ejm-expansion-joint.index') }}" class="text-slate-500 hover:text-slate-700">x</a>
             </div>
-            <form method="POST" action="{{ route('setting.ejm-expansion-joint.store') }}" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <form method="POST" action="{{ route('setting.ejm-expansion-joint.store') }}" class="grid grid-cols-1 md:grid-cols-5 gap-3">
                 @csrf
-                @php
-                    $fields = [
-                        'standard_version_id','shape_code','size_code','nb','width_mm','length_mm',
-                        'tl_per_side_mm','tl_qty','spacer_width_mm','spacer_qty','tool_radius_mm','tool_radius_qty',
-                        'pitch_ejma_mm','pitch_gte_mm','total_tl_mm','total_spacer_mm','total_tool_radius_mm',
-                        'tl_spacer_tool_total_mm','gap_mm','can_length_mm','effective_from','effective_to','notes'
-                    ];
-                @endphp
                 @foreach ($fields as $field)
                     <label class="text-xs text-slate-600">
                         <span class="font-semibold">{{ $field }}</span>
-                        <input type="{{ in_array($field, ['effective_from', 'effective_to']) ? 'date' : 'text' }}"
-                               name="{{ $field }}" value="{{ old($field, $field === 'shape_code' ? 'RND' : '') }}"
+                        <input type="text" name="{{ $field }}" value="{{ old($field, $field === 'shape_code' ? 'RND' : '') }}"
                                class="mt-1 w-full rounded-lg border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
                     </label>
                 @endforeach
@@ -163,7 +215,7 @@
                         <option value="0" @selected(old('is_active') === '0')>0</option>
                     </select>
                 </label>
-                <div class="md:col-span-4 flex justify-end gap-2 pt-2">
+                <div class="md:col-span-5 flex justify-end gap-2 pt-2">
                     <a href="{{ route('setting.ejm-expansion-joint.index') }}"
                        class="rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200">Cancel</a>
                     <button type="submit"
@@ -180,14 +232,13 @@
                 <a href="{{ route('setting.ejm-expansion-joint.index') }}" class="text-slate-500 hover:text-slate-700">x</a>
             </div>
             @if ($editing)
-                <form method="POST" action="{{ route('setting.ejm-expansion-joint.update') }}" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <form method="POST" action="{{ route('setting.ejm-expansion-joint.update') }}" class="grid grid-cols-1 md:grid-cols-5 gap-3">
                     @csrf
                     <input type="hidden" name="id" value="{{ $editing['id'] }}">
                     @foreach ($fields as $field)
                         <label class="text-xs text-slate-600">
                             <span class="font-semibold">{{ $field }}</span>
-                            <input type="{{ in_array($field, ['effective_from', 'effective_to']) ? 'date' : 'text' }}"
-                                   name="{{ $field }}" value="{{ old($field, $editing[$field] ?? '') }}"
+                            <input type="text" name="{{ $field }}" value="{{ old($field, $editing[$field] ?? '') }}"
                                    class="mt-1 w-full rounded-lg border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
                         </label>
                     @endforeach
@@ -198,7 +249,7 @@
                             <option value="0" @selected((string) old('is_active', (string) ($editing['is_active'] ?? '1')) === '0')>0</option>
                         </select>
                     </label>
-                    <div class="md:col-span-4 flex justify-end gap-2 pt-2">
+                    <div class="md:col-span-5 flex justify-end gap-2 pt-2">
                         <a href="{{ route('setting.ejm-expansion-joint.index') }}"
                            class="rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200">Cancel</a>
                         <button type="submit"
@@ -215,7 +266,17 @@
                 <h3 class="text-lg font-semibold text-slate-900">Import Expansion Joint (CSV/XLSX)</h3>
                 <button type="button" data-close-modal="importModal" class="text-slate-500 hover:text-slate-700">x</button>
             </div>
-            <p class="mb-3 text-sm text-slate-600">Key update import: kombinasi <b>shape_code + size_code</b>.</p>
+            <p class="mb-3 text-sm text-slate-600">Key update import: kombinasi <b>shape_code + size_code</b> (fallback `RND_NB{NB}`).</p>
+            <div class="mb-3 flex gap-2">
+                <a href="{{ route('setting.ejm-expansion-joint.template.csv') }}"
+                   class="inline-flex items-center rounded-lg bg-slate-700 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">
+                    Download CSV Template
+                </a>
+                <a href="{{ route('setting.ejm-expansion-joint.template.excel') }}"
+                   class="inline-flex items-center rounded-lg bg-slate-700 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">
+                    Download Excel Template
+                </a>
+            </div>
             <form method="POST" action="{{ route('setting.ejm-expansion-joint.import') }}" enctype="multipart/form-data" class="space-y-3">
                 @csrf
                 <input type="file" name="file" accept=".csv,.txt,.xlsx" required

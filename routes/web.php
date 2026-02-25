@@ -80,6 +80,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::post('/setting/ejm-validation/import', [EjmValidationController::class, 'import'])->name('setting.ejm-validation.import');
     Route::get('/setting/ejm-expansion-joint', [EjmExpansionJointController::class, 'index'])->name('setting.ejm-expansion-joint.index');
     Route::get('/setting/ejm-expansion-joint/create', [EjmExpansionJointController::class, 'create'])->name('setting.ejm-expansion-joint.create');
+    Route::get('/setting/ejm-expansion-joint/template/csv', [EjmExpansionJointController::class, 'templateCsv'])->name('setting.ejm-expansion-joint.template.csv');
+    Route::get('/setting/ejm-expansion-joint/template/excel', [EjmExpansionJointController::class, 'templateExcel'])->name('setting.ejm-expansion-joint.template.excel');
     Route::post('/setting/ejm-expansion-joint/store', [EjmExpansionJointController::class, 'store'])->name('setting.ejm-expansion-joint.store');
     Route::post('/setting/ejm-expansion-joint/update', [EjmExpansionJointController::class, 'update'])->name('setting.ejm-expansion-joint.update');
     Route::post('/setting/ejm-expansion-joint/import', [EjmExpansionJointController::class, 'import'])->name('setting.ejm-expansion-joint.import');

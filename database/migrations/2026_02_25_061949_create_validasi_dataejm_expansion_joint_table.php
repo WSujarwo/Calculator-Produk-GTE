@@ -9,56 +9,60 @@ return new class extends Migration {
     {
         Schema::create('validasi_dataejm_expansion_joint', function (Blueprint $table) {
             $table->id();
-
-            // ===== Optional: versioning (kalau kamu punya tabel versioning) =====
-            // $table->foreignId('standard_version_id')->nullable()->constrained('standard_versions');
             $table->unsignedBigInteger('standard_version_id')->nullable()->index();
+            $table->string('shape_code', 30)->default('RND')->index();
+            $table->string('size_code', 80)->nullable()->index();
 
-            // ===== Identitas standar =====
-            $table->string('shape_code', 30)->default('RND')->index(); // RND / SQ (atau lainnya)
-            $table->string('size_code', 80)->nullable()->index();     // contoh: RND_NB125 / SQ_200x200 (bebas format)
+            // SIZE
+            $table->unsignedSmallInteger('inch')->nullable()->index();
+            $table->unsignedInteger('nb')->nullable()->index();
+            $table->decimal('width', 10, 2)->nullable();
+            $table->decimal('length', 10, 2)->nullable();
 
-            // ===== Dimensi ukuran (ikuti kebutuhan RND vs SQ) =====
-            $table->unsignedInteger('nb')->nullable()->index();        // untuk rounded (NB)
-            $table->decimal('width_mm', 10, 2)->nullable()->index();   // untuk square (W)
-            $table->decimal('length_mm', 10, 2)->nullable()->index();  // untuk square (L)
+            // EXPANSION JOINT METAL
+            $table->decimal('id_mm', 10, 2)->nullable();
+            $table->decimal('od_mm', 10, 2)->nullable();
+            $table->decimal('thk', 8, 2)->nullable();
+            $table->decimal('ly', 8, 2)->nullable();
+            $table->unsignedSmallInteger('noc')->nullable();
+            $table->decimal('lc', 10, 2)->nullable();
+            $table->decimal('tc', 10, 2)->nullable();
+            $table->decimal('p', 10, 2)->nullable();
+            $table->decimal('tr', 10, 2)->nullable();
+            $table->decimal('r', 10, 2)->nullable();
+            $table->decimal('oal_b', 12, 2)->nullable();
+            $table->decimal('bl', 12, 2)->nullable();
+            $table->decimal('tl', 12, 2)->nullable();
+            $table->decimal('slc', 12, 2)->nullable();
+            $table->decimal('lpe', 12, 2)->nullable();
+            $table->decimal('pres', 10, 2)->nullable();
+            $table->string('temp_c', 20)->nullable();
+            $table->string('axial_m', 20)->nullable();
+            $table->decimal('lsr_n_per', 12, 3)->nullable();
+            $table->decimal('mp_ci_mpa', 12, 3)->nullable();
+            $table->decimal('mp_ii_mpa', 12, 3)->nullable();
+            $table->decimal('mlc', 12, 3)->nullable();
+            $table->decimal('gpf', 10, 2)->nullable();
+            $table->decimal('oal', 12, 2)->nullable();
+            $table->decimal('al', 10, 2)->nullable();
 
-            // ===== Actual Detail Calculation (komponen rumus) =====
-            $table->decimal('tl_per_side_mm', 10, 2)->nullable();      // TL (per sisi)
-            $table->unsignedSmallInteger('tl_qty')->default(2);        // biasanya 2 sisi
-            $table->decimal('spacer_width_mm', 10, 2)->nullable();     // spacer width
-            $table->unsignedSmallInteger('spacer_qty')->nullable();    // contoh 14
-            $table->decimal('tool_radius_mm', 10, 2)->nullable();      // tool radius
-            $table->unsignedSmallInteger('tool_radius_qty')->nullable();// contoh 13
+            // CIRCUMFERENCE + RESULT
+            $table->decimal('width1', 12, 2)->nullable();
+            $table->decimal('width2', 12, 2)->nullable();
+            $table->decimal('spare', 10, 2)->nullable();
+            $table->decimal('can_length', 12, 2)->nullable();
+            $table->decimal('circumference_collar', 12, 2)->nullable();
 
-            // Pitch standar
-            $table->decimal('pitch_ejma_mm', 10, 2)->nullable();
-            $table->decimal('pitch_gte_mm', 10, 2)->nullable();
-
-            // ===== Hasil standar (opsional disimpan agar mudah audit) =====
-            $table->decimal('total_tl_mm', 12, 2)->nullable();               // tl_per_side * tl_qty
-            $table->decimal('total_spacer_mm', 12, 2)->nullable();           // spacer_width * spacer_qty
-            $table->decimal('total_tool_radius_mm', 12, 2)->nullable();      // tool_radius * tool_radius_qty
-            $table->decimal('tl_spacer_tool_total_mm', 12, 2)->nullable();   // total_tl + total_spacer + total_tool_radius
-
-            $table->decimal('gap_mm', 10, 2)->nullable();                    // contoh 10
-            $table->decimal('can_length_mm', 12, 2)->nullable();             // hasil akhir (total + gap)
-
-            // ===== Effective period =====
-            $table->date('effective_from')->nullable()->index();
-            $table->date('effective_to')->nullable()->index();
-
-            // ===== Status & Catatan =====
-            $table->boolean('is_active')->default(true)->index();
+            $table->boolean('is_active')->default(true);
             $table->string('notes', 255)->nullable();
 
             $table->timestamps();
 
-            // Unik untuk mencegah dobel standar dalam 1 versi + shape + size
             $table->unique(
                 ['standard_version_id', 'shape_code', 'size_code'],
                 'uk_validasi_ejm_ver_shape_size'
             );
+            $table->index(['shape_code', 'nb'], 'idx_validasi_ejm_shape_nb');
         });
     }
 

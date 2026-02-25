@@ -36,20 +36,6 @@
                         </a>
                     @endforeach
                 </div>
-
-                <div class="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                    <p class="text-xs font-semibold text-slate-700">Template Import</p>
-                    <div class="mt-3 space-y-2">
-                        <a href="{{ route('setting.ejm-validation.template.csv') }}"
-                           class="inline-flex w-full items-center justify-center rounded-lg bg-slate-700 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">
-                            Download CSV
-                        </a>
-                        <a href="{{ route('setting.ejm-validation.template.excel') }}"
-                           class="inline-flex w-full items-center justify-center rounded-lg bg-slate-700 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">
-                            Download Excel
-                        </a>
-                    </div>
-                </div>
             </aside>
 
             <section class="xl:col-span-9 rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -61,6 +47,14 @@
                         <a href="{{ route('setting.ejm-validation.create', ['tab' => $activeTab]) }}"
                            class="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
                             + Add Data
+                        </a>
+                            <a href="{{ route('setting.ejm-validation.template.csv') }}"
+                            class="inline-flex items-center rounded-lg bg-slate-700 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800">
+                            Template CSV
+                        </a>
+                        <a href="{{ route('setting.ejm-validation.template.excel') }}"
+                           class="inline-flex items-center rounded-lg bg-slate-700 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800">
+                            Template Excel
                         </a>
                         <button type="button" id="openImportModal"
                                 class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
