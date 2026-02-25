@@ -18,6 +18,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\Calculation\GppCalculationController;
 
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -124,6 +125,10 @@ Route::prefix('master')->name('master.')->middleware('auth')->group(function () 
     Route::resource('materials', MaterialController::class)->except(['show']);
     Route::post('materials/import', [MaterialController::class, 'import'])->name('materials.import');
     Route::get('materials-template', [MaterialController::class, 'template'])->name('materials.template');
+
+    Route::resource('companies', CompanyController::class);
+    Route::resource('marketings', MarketingController::class);
+    Route::resource('quotations', QuotationController::class);
 });
 
 // Dropdown JSON (buat calculator)
