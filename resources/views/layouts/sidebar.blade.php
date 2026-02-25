@@ -122,7 +122,7 @@
         ) ? 'active' : '' }}">
         
         <span class="nav-icon material-symbols-rounded">storage</span>
-        <span class="nav-label">Database Product</span>
+        <span class="nav-label">Database</span>
         <span class="submenu-arrow material-symbols-rounded">expand_more</span>
         </a>
 

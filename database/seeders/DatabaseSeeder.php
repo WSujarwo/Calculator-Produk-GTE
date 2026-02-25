@@ -12,6 +12,14 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             ModulePermissionSeeder::class,
             EjmShapesAndTypesSeeder::class,
+            GppValidationSeeder::class,
+            TabelPrioritasMesinGppSeeder::class,
+            MasterDataBobbinDanPlyGppSeeder::class,
+            MasterDataProdukGppSeeder::class,
+            MasterDataInsertGppSeeder::class,
+            DataInsert2GppSeeder::class,
+            RmYarnPer10GrGppSeeder::class,
+            DurasiProsesValidationGppSeeder::class,
         ]);
     }
 }

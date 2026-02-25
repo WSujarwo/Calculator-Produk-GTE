@@ -80,9 +80,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::resource('quotations', QuotationController::class);
 });
 
-
-
-
+Route::get('/calculation/gpp', function () {
+    return view('calculation.gpp');
+})->name('calculation.gpp');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
