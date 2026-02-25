@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Quotation;
 use App\Models\Company;
 use App\Models\Marketing;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class QuotationController extends Controller
 {
@@ -16,6 +16,7 @@ class QuotationController extends Controller
         $this->middleware('permission:settings.quotations.create')->only(['create', 'store', 'import']);
         $this->middleware('permission:settings.quotations.edit')->only(['edit', 'update']);
         $this->middleware('permission:settings.quotations.delete')->only(['destroy']);
+        $this->middleware('permission:settings.quotations.create')->only(['storeInlineCompany', 'storeInlineMarketing']);
     }
 
     public function index()
@@ -24,15 +25,15 @@ class QuotationController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('quotations.index', compact('quotations'));
+        return view('settings.quotations.index', compact('quotations'));
     }
 
     public function create()
     {
-        $companies = Company::all();
-        $marketings = Marketing::all();
+        $companies = Company::orderBy('company_name')->get();
+        $marketings = Marketing::orderBy('name')->get();
 
-        return view('quotations.create', compact('companies', 'marketings'));
+        return view('settings.quotations.create', compact('companies', 'marketings'));
     }
 
     public function store(Request $request)
@@ -59,16 +60,16 @@ class QuotationController extends Controller
             'status' => 'DRAFT',
         ]);
 
-        return redirect()->route('quotations.index')
+        return redirect()->route('settings.quotations.index')
             ->with('success', 'Quotation created successfully.');
     }
 
     public function edit(Quotation $quotation)
     {
-        $companies = Company::all();
-        $marketings = Marketing::all();
+        $companies = Company::orderBy('company_name')->get();
+        $marketings = Marketing::orderBy('name')->get();
 
-        return view('quotations.edit', compact('quotation', 'companies', 'marketings'));
+        return view('settings.quotations.edit', compact('quotation', 'companies', 'marketings'));
     }
 
     public function update(Request $request, Quotation $quotation)
@@ -88,7 +89,7 @@ class QuotationController extends Controller
             'company_address' => $company->address,
         ]);
 
-        return redirect()->route('quotations.index')
+        return redirect()->route('settings.quotations.index')
             ->with('success', 'Quotation updated successfully.');
     }
 
@@ -96,7 +97,45 @@ class QuotationController extends Controller
     {
         $quotation->delete();
 
-        return redirect()->route('quotations.index')
+        return redirect()->route('settings.quotations.index')
             ->with('success', 'Quotation deleted successfully.');
+    }
+
+    public function storeInlineCompany(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'company_code' => 'required|string|max:255|unique:companies,company_code',
+            'company_name' => 'required|string|max:255',
+            'address' => 'nullable|string',
+            'city' => 'nullable|string|max:255',
+            'country' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+        ]);
+
+        $company = Company::create($validated);
+
+        return response()->json([
+            'id' => $company->id,
+            'label' => trim($company->company_code . ' - ' . $company->company_name),
+            'address' => $company->address,
+        ], 201);
+    }
+
+    public function storeInlineMarketing(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'marketing_no' => 'required|string|max:255|unique:marketings,marketing_no',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:marketings,email',
+            'phone' => 'nullable|string|max:255',
+        ]);
+
+        $marketing = Marketing::create($validated);
+
+        return response()->json([
+            'id' => $marketing->id,
+            'label' => trim($marketing->marketing_no . ' - ' . $marketing->name),
+        ], 201);
     }
 }

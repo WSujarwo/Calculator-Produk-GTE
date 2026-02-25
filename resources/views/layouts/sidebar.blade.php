@@ -173,13 +173,16 @@
         </ul>
     </li>
 
+    @can('settings.quotations.view')
     <li class="nav-item">
-        <a href="#" class="nav-link">
+        <a href="{{ route('settings.quotations.index') }}"
+           class="nav-link {{ request()->routeIs('settings.quotations.*') ? 'active' : '' }}">
             <span class="nav-icon material-symbols-rounded">request_quote</span>
             <span class="nav-label">Quotation</span>
         </a>
         <span class="nav-tooltip">Quotation</span>
     </li>
+    @endcan
 
     <li class="nav-item">
         <a href="#" class="nav-link">
@@ -405,13 +408,16 @@
         </ul>
     </li>
 
+    @can('settings.quotations.view')
     <li class="nav-item">
-        <a href="#" class="nav-link">
+        <a href="{{ route('settings.quotations.index') }}"
+           class="nav-link {{ request()->routeIs('settings.quotations.*') ? 'active' : '' }}">
             <span class="nav-icon material-symbols-rounded">request_quote</span>
             <span class="nav-label">Quotation</span>
         </a>
         <span class="nav-tooltip">Quotation</span>
     </li>
+    @endcan
 
     <li class="nav-item">
         <a href="#" class="nav-link">

@@ -120,13 +120,12 @@ Route::prefix('master')->name('master.')->middleware('auth')->group(function () 
     Route::post('materials/import', [MaterialController::class, 'import'])->name('materials.import');
     Route::get('materials-template', [MaterialController::class, 'template'])->name('materials.template');
 
-    Route::resource('companies', CompanyController::class);
-    Route::resource('marketings', MarketingController::class);
-    Route::resource('quotations', QuotationController::class);
 });
 
 Route::prefix('settings')->name('settings.')->group(function () {
 
+    Route::post('quotations/inline-companies', [QuotationController::class, 'storeInlineCompany'])->name('quotations.inline-companies.store');
+    Route::post('quotations/inline-marketings', [QuotationController::class, 'storeInlineMarketing'])->name('quotations.inline-marketings.store');
     Route::resource('companies', CompanyController::class);
     Route::resource('marketings', MarketingController::class);
     Route::resource('quotations', QuotationController::class);
