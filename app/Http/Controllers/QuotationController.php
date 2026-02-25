@@ -12,7 +12,7 @@ class QuotationController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:settings.quotations.view')->only(['index']);
+        $this->middleware('permission:settings.quotations.view')->only(['index', 'show']);
         $this->middleware('permission:settings.quotations.create')->only(['create', 'store', 'import']);
         $this->middleware('permission:settings.quotations.edit')->only(['edit', 'update']);
         $this->middleware('permission:settings.quotations.delete')->only(['destroy']);
@@ -32,16 +32,39 @@ class QuotationController extends Controller
     {
         $companies = Company::orderBy('company_name')->get();
         $marketings = Marketing::orderBy('name')->get();
+        $customerOptions = $companies->map(function ($company) {
+            return [
+                'id' => $company->id,
+                'label' => trim($company->company_code . ' - ' . $company->company_name),
+                'address' => $company->address ?? '',
+            ];
+        })->values();
+        $marketingOptions = $marketings->map(function ($marketing) {
+            return [
+                'id' => $marketing->id,
+                'label' => trim($marketing->marketing_no . ' - ' . $marketing->name),
+            ];
+        })->values();
 
-        return view('settings.quotations.create', compact('companies', 'marketings'));
+        return view('settings.quotations.create', compact('companies', 'marketings', 'customerOptions', 'marketingOptions'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'quotation_date' => 'required|date',
             'company_id' => 'required|exists:companies,id',
             'marketing_id' => 'required|exists:marketings,id',
+            'revision_no' => 'nullable|integer|min:0',
+            'attention' => 'nullable|string|max:255',
+            'delivery_to' => 'nullable|string|max:255',
+            'delivery_term' => 'nullable|string|max:255',
+            'payment_days' => 'nullable|integer|min:0',
+            'delivery_time_days' => 'nullable|integer|min:0',
+            'scope_of_work' => 'nullable|string|max:255',
+            'price_validity_weeks' => 'nullable|integer|min:0',
+            'company_address' => 'nullable|string',
+            'result_status' => 'required|in:GAGAL,PENDING,SUKSES',
         ]);
 
         // Auto generate quotation number
@@ -49,15 +72,24 @@ class QuotationController extends Controller
         $number = $last ? intval(substr($last->quotation_no, -4)) + 1 : 1;
         $quotationNo = 'QUO-' . date('Y') . '-' . str_pad($number, 4, '0', STR_PAD_LEFT);
 
-        $company = Company::find($request->company_id);
+        $company = Company::find($validated['company_id']);
 
         Quotation::create([
             'quotation_no' => $quotationNo,
-            'quotation_date' => $request->quotation_date,
-            'company_id' => $request->company_id,
-            'marketing_id' => $request->marketing_id,
-            'company_address' => $company->address,
+            'quotation_date' => $validated['quotation_date'],
+            'revision_no' => $validated['revision_no'] ?? 0,
+            'company_id' => $validated['company_id'],
+            'marketing_id' => $validated['marketing_id'],
+            'attention' => $validated['attention'] ?? null,
+            'delivery_to' => $validated['delivery_to'] ?? null,
+            'delivery_term' => $validated['delivery_term'] ?? null,
+            'payment_days' => $validated['payment_days'] ?? null,
+            'delivery_time_days' => $validated['delivery_time_days'] ?? null,
+            'scope_of_work' => $validated['scope_of_work'] ?? null,
+            'price_validity_weeks' => $validated['price_validity_weeks'] ?? null,
+            'company_address' => $validated['company_address'] ?? $company->address,
             'status' => 'DRAFT',
+            'result_status' => $validated['result_status'],
         ]);
 
         return redirect()->route('settings.quotations.index')
@@ -68,25 +100,64 @@ class QuotationController extends Controller
     {
         $companies = Company::orderBy('company_name')->get();
         $marketings = Marketing::orderBy('name')->get();
+        $customerOptions = $companies->map(function ($company) {
+            return [
+                'id' => $company->id,
+                'label' => trim($company->company_code . ' - ' . $company->company_name),
+                'address' => $company->address ?? '',
+            ];
+        })->values();
+        $marketingOptions = $marketings->map(function ($marketing) {
+            return [
+                'id' => $marketing->id,
+                'label' => trim($marketing->marketing_no . ' - ' . $marketing->name),
+            ];
+        })->values();
 
-        return view('settings.quotations.edit', compact('quotation', 'companies', 'marketings'));
+        return view('settings.quotations.edit', compact('quotation', 'companies', 'marketings', 'customerOptions', 'marketingOptions'));
+    }
+
+    public function show(Quotation $quotation)
+    {
+        $quotation->load(['company', 'marketing']);
+
+        return view('settings.quotations.show', compact('quotation'));
     }
 
     public function update(Request $request, Quotation $quotation)
     {
-        $request->validate([
+        $validated = $request->validate([
             'quotation_date' => 'required|date',
             'company_id' => 'required|exists:companies,id',
             'marketing_id' => 'required|exists:marketings,id',
+            'revision_no' => 'nullable|integer|min:0',
+            'attention' => 'nullable|string|max:255',
+            'delivery_to' => 'nullable|string|max:255',
+            'delivery_term' => 'nullable|string|max:255',
+            'payment_days' => 'nullable|integer|min:0',
+            'delivery_time_days' => 'nullable|integer|min:0',
+            'scope_of_work' => 'nullable|string|max:255',
+            'price_validity_weeks' => 'nullable|integer|min:0',
+            'company_address' => 'nullable|string',
+            'result_status' => 'required|in:GAGAL,PENDING,SUKSES',
         ]);
 
-        $company = Company::find($request->company_id);
+        $company = Company::find($validated['company_id']);
 
         $quotation->update([
-            'quotation_date' => $request->quotation_date,
-            'company_id' => $request->company_id,
-            'marketing_id' => $request->marketing_id,
-            'company_address' => $company->address,
+            'quotation_date' => $validated['quotation_date'],
+            'revision_no' => $validated['revision_no'] ?? 0,
+            'company_id' => $validated['company_id'],
+            'marketing_id' => $validated['marketing_id'],
+            'attention' => $validated['attention'] ?? null,
+            'delivery_to' => $validated['delivery_to'] ?? null,
+            'delivery_term' => $validated['delivery_term'] ?? null,
+            'payment_days' => $validated['payment_days'] ?? null,
+            'delivery_time_days' => $validated['delivery_time_days'] ?? null,
+            'scope_of_work' => $validated['scope_of_work'] ?? null,
+            'price_validity_weeks' => $validated['price_validity_weeks'] ?? null,
+            'company_address' => $validated['company_address'] ?? $company->address,
+            'result_status' => $validated['result_status'],
         ]);
 
         return redirect()->route('settings.quotations.index')

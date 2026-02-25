@@ -6,74 +6,176 @@
     </x-slot>
 
     <div class="w-full px-6 lg:px-10 py-6">
-        <div class="bg-white rounded-2xl shadow-lg border border-gray-200/40 p-8">
+        <div class="mx-auto max-w-5xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:p-8">
             <form action="{{ route('settings.quotations.store') }}" method="POST" class="space-y-6">
                 @csrf
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Quotation Date</label>
-                    <input type="date" name="quotation_date" value="{{ old('quotation_date', date('Y-m-d')) }}"
-                           class="mt-1 w-full rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
-                    @error('quotation_date')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between gap-3">
-                        <label class="block text-sm font-medium text-gray-700">Company</label>
-                        <button type="button" id="openCompanyModal"
-                                class="px-3 py-1.5 text-xs bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
-                            + Add Company
-                        </button>
+                <div class="grid gap-5 md:grid-cols-2">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Quotation No</label>
+                        <input type="text" value="Auto Generate"
+                               class="mt-2 w-full rounded-xl border-slate-300 bg-slate-100 text-sm text-slate-500" disabled>
                     </div>
-                    <input type="text" id="companySearch" placeholder="Search company..."
-                           class="w-full rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm">
-                    <select name="company_id" id="companySelect"
-                            class="w-full rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" required>
-                        <option value="">-- Select Company --</option>
-                        @foreach ($companies as $company)
-                            <option value="{{ $company->id }}" @selected(old('company_id') == $company->id)>
-                                {{ $company->company_code }} - {{ $company->company_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('company_id')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between gap-3">
-                        <label class="block text-sm font-medium text-gray-700">Marketing</label>
-                        <button type="button" id="openMarketingModal"
-                                class="px-3 py-1.5 text-xs bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
-                            + Add Marketing
-                        </button>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Result Status</label>
+                        <div class="mt-2 flex flex-wrap items-center gap-4 rounded-xl border border-slate-300 px-4 py-2.5">
+                            @foreach (['GAGAL', 'PENDING', 'SUKSES'] as $status)
+                                <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                                    <input type="radio" name="result_status" value="{{ $status }}"
+                                           class="border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                           @checked(old('result_status', 'PENDING') === $status)>
+                                    {{ $status }}
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('result_status')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
-                    <input type="text" id="marketingSearch" placeholder="Search marketing..."
-                           class="w-full rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm">
-                    <select name="marketing_id" id="marketingSelect"
-                            class="w-full rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" required>
-                        <option value="">-- Select Marketing --</option>
-                        @foreach ($marketings as $marketing)
-                            <option value="{{ $marketing->id }}" @selected(old('marketing_id') == $marketing->id)>
-                                {{ $marketing->marketing_no }} - {{ $marketing->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('marketing_id')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
                 </div>
 
-                <div class="flex justify-end gap-3">
+                <div class="grid gap-6 md:grid-cols-2">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Date</label>
+                            <input type="date" name="quotation_date" value="{{ old('quotation_date', date('Y-m-d')) }}"
+                                   class="mt-2 w-full rounded-xl border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            @error('quotation_date')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <div class="mb-2 flex items-center justify-between">
+                                <label class="text-sm font-medium text-slate-700">Marketing</label>
+                                <button type="button" id="openMarketingModal"
+                                        class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">
+                                    + Add Marketing
+                                </button>
+                            </div>
+                            <input type="hidden" name="marketing_id" id="marketingId" value="{{ old('marketing_id') }}">
+                            <div class="relative">
+                                <button type="button" id="marketingTrigger"
+                                        class="flex w-full items-center justify-between rounded-xl border border-slate-300 px-3 py-2.5 text-left text-sm text-slate-700">
+                                    <span id="marketingLabel">Select marketing</span>
+                                    <span class="text-slate-400">v</span>
+                                </button>
+                                <div id="marketingPanel" class="absolute z-40 mt-2 hidden w-full rounded-xl border border-slate-200 bg-white shadow-lg">
+                                    <div class="border-b border-slate-100 p-2">
+                                        <input type="text" id="marketingSearch" placeholder="Search marketing..."
+                                               class="w-full rounded-lg border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    </div>
+                                    <ul id="marketingOptions" class="max-h-56 overflow-y-auto py-1 text-sm"></ul>
+                                </div>
+                            </div>
+                            @error('marketing_id')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Revision No</label>
+                            <input type="number" min="0" name="revision_no" value="{{ old('revision_no', 0) }}"
+                                   class="mt-2 w-full rounded-xl border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            @error('revision_no')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <div class="mb-2 flex items-center justify-between">
+                                <label class="text-sm font-medium text-slate-700">Customer Name</label>
+                                <button type="button" id="openCustomerModal"
+                                        class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">
+                                    + Add Customer
+                                </button>
+                            </div>
+                            <input type="hidden" name="company_id" id="customerId" value="{{ old('company_id') }}">
+                            <div class="relative">
+                                <button type="button" id="customerTrigger"
+                                        class="flex w-full items-center justify-between rounded-xl border border-slate-300 px-3 py-2.5 text-left text-sm text-slate-700">
+                                    <span id="customerLabel">Select customer</span>
+                                    <span class="text-slate-400">v</span>
+                                </button>
+                                <div id="customerPanel" class="absolute z-40 mt-2 hidden w-full rounded-xl border border-slate-200 bg-white shadow-lg">
+                                    <div class="border-b border-slate-100 p-2">
+                                        <input type="text" id="customerSearch" placeholder="Search customer..."
+                                               class="w-full rounded-lg border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    </div>
+                                    <ul id="customerOptions" class="max-h-56 overflow-y-auto py-1 text-sm"></ul>
+                                </div>
+                            </div>
+                            @error('company_id')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Address</label>
+                            <textarea name="company_address" id="companyAddress" rows="4"
+                                      class="mt-2 w-full rounded-xl border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('company_address') }}</textarea>
+                            @error('company_address')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Attention</label>
+                            <input type="text" name="attention" value="{{ old('attention') }}"
+                                   class="mt-2 w-full rounded-xl border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Delivery To</label>
+                            <input type="text" name="delivery_to" value="{{ old('delivery_to') }}"
+                                   class="mt-2 w-full rounded-xl border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Delivery Term</label>
+                            <input type="text" name="delivery_term" value="{{ old('delivery_term') }}"
+                                   class="mt-2 w-full rounded-xl border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+
+                        <div class="grid grid-cols-[120px,1fr] gap-3 items-center">
+                            <input type="number" min="0" name="payment_days" value="{{ old('payment_days') }}"
+                                   class="rounded-xl border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <span class="text-sm text-slate-700">days after delivery & invoice</span>
+                        </div>
+
+                        <div class="grid grid-cols-[120px,1fr] gap-3 items-center">
+                            <input type="number" min="0" name="delivery_time_days" value="{{ old('delivery_time_days') }}"
+                                   class="rounded-xl border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <span class="text-sm text-slate-700">days after PO received</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Scope of Work</label>
+                            <select name="scope_of_work"
+                                    class="mt-2 w-full rounded-xl border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                @foreach (['Supply Only', 'Supply + Installation', 'Installation Only'] as $scope)
+                                    <option value="{{ $scope }}" @selected(old('scope_of_work', 'Supply Only') === $scope)>{{ $scope }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-[120px,1fr] gap-3 items-center">
+                            <input type="number" min="0" name="price_validity_weeks" value="{{ old('price_validity_weeks') }}"
+                                   class="rounded-xl border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <span class="text-sm text-slate-700">weeks after quotation date</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 border-t border-slate-100 pt-5">
                     <a href="{{ route('settings.quotations.index') }}"
-                       class="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl text-sm">
-                        Cancel
+                       class="rounded-xl bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200">
+                        Close
                     </a>
                     <button type="submit"
-                            class="px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm hover:bg-indigo-700">
+                            class="rounded-xl bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
                         Save Quotation
                     </button>
                 </div>
@@ -81,48 +183,48 @@
         </div>
     </div>
 
-    <div id="companyModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50 px-4">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-xl p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Add Company</h3>
-                <button type="button" data-close-modal="companyModal" class="text-gray-500 hover:text-gray-700">x</button>
+    <div id="customerModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4">
+        <div class="w-full max-w-xl rounded-2xl bg-white p-6 shadow-xl">
+            <div class="mb-4 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-slate-900">Add Customer</h3>
+                <button type="button" data-close-modal="customerModal" class="text-slate-500 hover:text-slate-700">x</button>
             </div>
-            <form id="companyInlineForm" class="space-y-3">
+            <form id="customerInlineForm" class="space-y-3">
                 @csrf
-                <input type="text" name="company_code" placeholder="Company Code" class="w-full rounded-xl border-gray-300" required>
-                <input type="text" name="company_name" placeholder="Company Name" class="w-full rounded-xl border-gray-300" required>
-                <textarea name="address" placeholder="Address" rows="3" class="w-full rounded-xl border-gray-300"></textarea>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <input type="email" name="email" placeholder="Email" class="w-full rounded-xl border-gray-300">
-                    <input type="text" name="phone" placeholder="Phone" class="w-full rounded-xl border-gray-300">
+                <input type="text" name="company_code" placeholder="Customer Code" class="w-full rounded-xl border-slate-300 text-sm" required>
+                <input type="text" name="company_name" placeholder="Customer Name" class="w-full rounded-xl border-slate-300 text-sm" required>
+                <textarea name="address" placeholder="Address" rows="3" class="w-full rounded-xl border-slate-300 text-sm"></textarea>
+                <div class="grid gap-3 md:grid-cols-2">
+                    <input type="email" name="email" placeholder="Email" class="w-full rounded-xl border-slate-300 text-sm">
+                    <input type="text" name="phone" placeholder="Phone" class="w-full rounded-xl border-slate-300 text-sm">
                 </div>
-                <p id="companyInlineError" class="text-sm text-red-600 hidden"></p>
+                <p id="customerInlineError" class="hidden text-sm text-red-600"></p>
                 <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" data-close-modal="companyModal" class="px-4 py-2 bg-gray-200 text-sm rounded-xl">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-emerald-600 text-white text-sm rounded-xl">Save</button>
+                    <button type="button" data-close-modal="customerModal" class="rounded-xl bg-slate-100 px-4 py-2 text-sm text-slate-700">Cancel</button>
+                    <button type="submit" class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">Save</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="marketingModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50 px-4">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-xl p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Add Marketing</h3>
-                <button type="button" data-close-modal="marketingModal" class="text-gray-500 hover:text-gray-700">x</button>
+    <div id="marketingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4">
+        <div class="w-full max-w-xl rounded-2xl bg-white p-6 shadow-xl">
+            <div class="mb-4 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-slate-900">Add Marketing</h3>
+                <button type="button" data-close-modal="marketingModal" class="text-slate-500 hover:text-slate-700">x</button>
             </div>
             <form id="marketingInlineForm" class="space-y-3">
                 @csrf
-                <input type="text" name="marketing_no" placeholder="Marketing No" class="w-full rounded-xl border-gray-300" required>
-                <input type="text" name="name" placeholder="Name" class="w-full rounded-xl border-gray-300" required>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <input type="email" name="email" placeholder="Email" class="w-full rounded-xl border-gray-300" required>
-                    <input type="text" name="phone" placeholder="Phone" class="w-full rounded-xl border-gray-300">
+                <input type="text" name="marketing_no" placeholder="Marketing No" class="w-full rounded-xl border-slate-300 text-sm" required>
+                <input type="text" name="name" placeholder="Name" class="w-full rounded-xl border-slate-300 text-sm" required>
+                <div class="grid gap-3 md:grid-cols-2">
+                    <input type="email" name="email" placeholder="Email" class="w-full rounded-xl border-slate-300 text-sm" required>
+                    <input type="text" name="phone" placeholder="Phone" class="w-full rounded-xl border-slate-300 text-sm">
                 </div>
-                <p id="marketingInlineError" class="text-sm text-red-600 hidden"></p>
+                <p id="marketingInlineError" class="hidden text-sm text-red-600"></p>
                 <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" data-close-modal="marketingModal" class="px-4 py-2 bg-gray-200 text-sm rounded-xl">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-emerald-600 text-white text-sm rounded-xl">Save</button>
+                    <button type="button" data-close-modal="marketingModal" class="rounded-xl bg-slate-100 px-4 py-2 text-sm text-slate-700">Cancel</button>
+                    <button type="submit" class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">Save</button>
                 </div>
             </form>
         </div>
@@ -130,6 +232,9 @@
 
     <script>
         (function () {
+            const customerData = @json($customerOptions);
+            const marketingData = @json($marketingOptions);
+
             function toggleModal(id, show) {
                 const modal = document.getElementById(id);
                 if (!modal) return;
@@ -137,28 +242,91 @@
                 modal.classList.toggle('flex', show);
             }
 
-            function setupSearch(searchId, selectId) {
-                const search = document.getElementById(searchId);
-                const select = document.getElementById(selectId);
-                if (!search || !select) return;
+            function createCombobox(config) {
+                const trigger = document.getElementById(config.triggerId);
+                const panel = document.getElementById(config.panelId);
+                const search = document.getElementById(config.searchId);
+                const optionsEl = document.getElementById(config.optionsId);
+                const hiddenInput = document.getElementById(config.hiddenId);
+                const labelEl = document.getElementById(config.labelId);
+
+                let items = config.items;
+                let selectedId = hiddenInput.value ? Number(hiddenInput.value) : null;
+
+                function setSelected(item) {
+                    selectedId = Number(item.id);
+                    hiddenInput.value = String(item.id);
+                    labelEl.textContent = item.label;
+                    if (typeof config.onSelect === 'function') {
+                        config.onSelect(item);
+                    }
+                }
+
+                function render(filterText) {
+                    const keyword = (filterText || '').toLowerCase().trim();
+                    const filtered = items.filter(item => item.label.toLowerCase().includes(keyword));
+                    optionsEl.innerHTML = '';
+
+                    if (!filtered.length) {
+                        optionsEl.innerHTML = '<li class="px-3 py-2 text-slate-400">No data found</li>';
+                        return;
+                    }
+
+                    filtered.forEach(item => {
+                        const li = document.createElement('li');
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'w-full px-3 py-2 text-left text-slate-700 hover:bg-slate-50';
+                        btn.textContent = item.label;
+                        btn.addEventListener('click', function () {
+                            setSelected(item);
+                            panel.classList.add('hidden');
+                        });
+                        li.appendChild(btn);
+                        optionsEl.appendChild(li);
+                    });
+                }
+
+                trigger.addEventListener('click', function () {
+                    panel.classList.toggle('hidden');
+                    if (!panel.classList.contains('hidden')) search.focus();
+                });
 
                 search.addEventListener('input', function () {
-                    const keyword = this.value.toLowerCase().trim();
-                    Array.from(select.options).forEach(function (option, index) {
-                        if (index === 0) return;
-                        const show = option.text.toLowerCase().includes(keyword);
-                        option.hidden = !show;
-                    });
+                    render(this.value);
                 });
+
+                document.addEventListener('click', function (event) {
+                    if (!panel.contains(event.target) && !trigger.contains(event.target)) {
+                        panel.classList.add('hidden');
+                    }
+                });
+
+                const initial = items.find(item => item.id === selectedId);
+                if (initial) {
+                    labelEl.textContent = initial.label;
+                    if (typeof config.onSelect === 'function') {
+                        config.onSelect(initial, true);
+                    }
+                }
+
+                render('');
+
+                return {
+                    addItem: function (item, selectNow) {
+                        items.push(item);
+                        if (selectNow) setSelected(item);
+                        render(search.value);
+                    }
+                };
             }
 
             async function postInline(formId, url, errorId, onSuccess) {
                 const form = document.getElementById(formId);
                 const error = document.getElementById(errorId);
-                if (!form) return;
 
-                form.addEventListener('submit', async function (e) {
-                    e.preventDefault();
+                form.addEventListener('submit', async function (event) {
+                    event.preventDefault();
                     error.classList.add('hidden');
                     error.textContent = '';
 
@@ -171,25 +339,48 @@
                             },
                             body: new FormData(form),
                         });
-
                         const data = await response.json();
-                        if (!response.ok) {
-                            throw new Error(data.message || 'Failed to save data.');
-                        }
-
+                        if (!response.ok) throw new Error(data.message || 'Failed to save data.');
                         onSuccess(data);
                         form.reset();
-                    } catch (err) {
-                        error.textContent = err.message;
+                    } catch (errorObj) {
+                        error.textContent = errorObj.message;
                         error.classList.remove('hidden');
                     }
                 });
             }
 
-            document.getElementById('openCompanyModal')?.addEventListener('click', function () {
-                toggleModal('companyModal', true);
+            const companyAddress = document.getElementById('companyAddress');
+
+            const customerCombobox = createCombobox({
+                triggerId: 'customerTrigger',
+                panelId: 'customerPanel',
+                searchId: 'customerSearch',
+                optionsId: 'customerOptions',
+                hiddenId: 'customerId',
+                labelId: 'customerLabel',
+                items: customerData,
+                onSelect: function (item) {
+                    if (companyAddress && item.address) {
+                        companyAddress.value = item.address;
+                    }
+                }
             });
-            document.getElementById('openMarketingModal')?.addEventListener('click', function () {
+
+            const marketingCombobox = createCombobox({
+                triggerId: 'marketingTrigger',
+                panelId: 'marketingPanel',
+                searchId: 'marketingSearch',
+                optionsId: 'marketingOptions',
+                hiddenId: 'marketingId',
+                labelId: 'marketingLabel',
+                items: marketingData,
+            });
+
+            document.getElementById('openCustomerModal').addEventListener('click', function () {
+                toggleModal('customerModal', true);
+            });
+            document.getElementById('openMarketingModal').addEventListener('click', function () {
                 toggleModal('marketingModal', true);
             });
             document.querySelectorAll('[data-close-modal]').forEach(function (button) {
@@ -198,18 +389,13 @@
                 });
             });
 
-            setupSearch('companySearch', 'companySelect');
-            setupSearch('marketingSearch', 'marketingSelect');
-
             postInline(
-                'companyInlineForm',
+                'customerInlineForm',
                 "{{ route('settings.quotations.inline-companies.store') }}",
-                'companyInlineError',
+                'customerInlineError',
                 function (data) {
-                    const select = document.getElementById('companySelect');
-                    const option = new Option(data.label, data.id, true, true);
-                    select.add(option);
-                    toggleModal('companyModal', false);
+                    customerCombobox.addItem({ id: Number(data.id), label: data.label, address: data.address || '' }, true);
+                    toggleModal('customerModal', false);
                 }
             );
 
@@ -218,9 +404,7 @@
                 "{{ route('settings.quotations.inline-marketings.store') }}",
                 'marketingInlineError',
                 function (data) {
-                    const select = document.getElementById('marketingSelect');
-                    const option = new Option(data.label, data.id, true, true);
-                    select.add(option);
+                    marketingCombobox.addItem({ id: Number(data.id), label: data.label }, true);
                     toggleModal('marketingModal', false);
                 }
             );

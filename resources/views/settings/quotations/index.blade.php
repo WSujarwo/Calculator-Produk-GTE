@@ -29,7 +29,7 @@
                         <tr>
                             <th class="px-4 py-3">Quotation No</th>
                             <th class="px-4 py-3">Date</th>
-                            <th class="px-4 py-3">Company</th>
+                            <th class="px-4 py-3">Customer</th>
                             <th class="px-4 py-3">Marketing</th>
                             <th class="px-4 py-3">Status</th>
                             <th class="px-4 py-3">Action</th>
@@ -42,8 +42,12 @@
                                 <td class="px-4 py-3">{{ optional($quotation->quotation_date)->format('Y-m-d') }}</td>
                                 <td class="px-4 py-3">{{ $quotation->company->company_name ?? '-' }}</td>
                                 <td class="px-4 py-3">{{ $quotation->marketing->name ?? '-' }}</td>
-                                <td class="px-4 py-3">{{ $quotation->status }}</td>
+                                <td class="px-4 py-3">{{ $quotation->result_status }}</td>
                                 <td class="px-4 py-3 flex gap-3">
+                                    <a href="{{ route('settings.quotations.show', $quotation) }}"
+                                       class="text-slate-600 hover:underline text-sm">
+                                        View
+                                    </a>
                                     <a href="{{ route('settings.quotations.edit', $quotation) }}"
                                        class="text-indigo-600 hover:underline text-sm">
                                         Edit

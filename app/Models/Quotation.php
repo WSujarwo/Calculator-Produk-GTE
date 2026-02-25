@@ -14,16 +14,29 @@ class Quotation extends Model
     protected $fillable = [
         'quotation_no',
         'quotation_date',
+        'revision_no',
         'company_id',
         'marketing_id',
+        'attention',
+        'delivery_to',
+        'delivery_term',
+        'payment_days',
+        'delivery_time_days',
+        'scope_of_work',
+        'price_validity_weeks',
         'company_address',
         'status',
+        'result_status',
         'created_by',
         'updated_by',
     ];
 
     protected $casts = [
         'quotation_date' => 'date',
+        'revision_no' => 'integer',
+        'payment_days' => 'integer',
+        'delivery_time_days' => 'integer',
+        'price_validity_weeks' => 'integer',
     ];
 
     public function company()
