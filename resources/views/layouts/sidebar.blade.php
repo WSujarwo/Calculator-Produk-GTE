@@ -173,10 +173,10 @@
         </ul>
     </li>
 
-    @can('settings.quotations.view')
+    @can('quotations.view')
     <li class="nav-item">
-        <a href="{{ route('settings.quotations.index') }}"
-           class="nav-link {{ request()->routeIs('settings.quotations.*') ? 'active' : '' }}">
+        <a href="{{ route('quotations.index') }}"
+           class="nav-link {{ request()->routeIs('quotations.*') ? 'active' : '' }}">
             <span class="nav-icon material-symbols-rounded">request_quote</span>
             <span class="nav-label">Quotation</span>
         </a>
@@ -408,10 +408,10 @@
         </ul>
     </li>
 
-    @can('settings.quotations.view')
+    @can('quotations.view')
     <li class="nav-item">
-        <a href="{{ route('settings.quotations.index') }}"
-           class="nav-link {{ request()->routeIs('settings.quotations.*') ? 'active' : '' }}">
+        <a href="{{ route('quotations.index') }}"
+           class="nav-link {{ request()->routeIs('quotations.*') ? 'active' : '' }}">
             <span class="nav-icon material-symbols-rounded">request_quote</span>
             <span class="nav-label">Quotation</span>
         </a>

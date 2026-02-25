@@ -34,14 +34,16 @@
             </div>
 
             <div class="mt-6 flex justify-end gap-3">
-                <a href="{{ route('settings.quotations.index') }}"
+                <a href="{{ route('quotations.index') }}"
                    class="rounded-xl bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200">
                     Back
                 </a>
-                <a href="{{ route('settings.quotations.edit', $quotation) }}"
-                   class="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
-                    Edit
-                </a>
+                @can('quotations.edit')
+                    <a href="{{ route('quotations.index', ['edit' => $quotation->id]) }}"
+                       class="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+                        Edit
+                    </a>
+                @endcan
             </div>
         </div>
     </div>

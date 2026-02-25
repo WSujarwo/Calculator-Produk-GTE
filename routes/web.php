@@ -13,6 +13,7 @@ use App\Http\Controllers\Master\MaterialController;
 use App\Http\Controllers\Settings\RolePermissionController;
 use App\Http\Controllers\Settings\SettingController;
 use App\Http\Controllers\Settings\CustomerController;
+use App\Http\Controllers\Settings\DataValidasiEjmProsesController;
 use App\Http\Controllers\Settings\EjmExpansionJointController;
 use App\Http\Controllers\Settings\EjmValidationController;
 use App\Http\Controllers\CompanyController;
@@ -78,6 +79,16 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::post('/setting/ejm-validation/store', [EjmValidationController::class, 'store'])->name('setting.ejm-validation.store');
     Route::post('/setting/ejm-validation/update', [EjmValidationController::class, 'update'])->name('setting.ejm-validation.update');
     Route::post('/setting/ejm-validation/import', [EjmValidationController::class, 'import'])->name('setting.ejm-validation.import');
+    Route::get('/setting/ejm-validation-proses', [DataValidasiEjmProsesController::class, 'index'])->name('setting.ejm-validation-proses.index');
+    Route::get('/setting/ejm-validation-proses/create', [DataValidasiEjmProsesController::class, 'create'])->name('setting.ejm-validation-proses.create');
+    Route::post('/setting/ejm-validation-proses/store', [DataValidasiEjmProsesController::class, 'store'])->name('setting.ejm-validation-proses.store');
+    Route::post('/setting/ejm-validation-proses/update', [DataValidasiEjmProsesController::class, 'update'])->name('setting.ejm-validation-proses.update');
+    Route::post('/setting/ejm-validation-proses/delete', [DataValidasiEjmProsesController::class, 'destroy'])->name('setting.ejm-validation-proses.delete');
+    Route::post('/setting/ejm-validation-proses/import', [DataValidasiEjmProsesController::class, 'import'])->name('setting.ejm-validation-proses.import');
+    Route::get('/setting/ejm-validation-proses/template/csv', [DataValidasiEjmProsesController::class, 'templateCsv'])->name('setting.ejm-validation-proses.template.csv');
+    Route::get('/setting/ejm-validation-proses/template/excel', [DataValidasiEjmProsesController::class, 'templateExcel'])->name('setting.ejm-validation-proses.template.excel');
+    Route::get('/setting/ejm-validation-proses/export/csv', [DataValidasiEjmProsesController::class, 'exportCsv'])->name('setting.ejm-validation-proses.export.csv');
+    Route::get('/setting/ejm-validation-proses/export/excel', [DataValidasiEjmProsesController::class, 'exportExcel'])->name('setting.ejm-validation-proses.export.excel');
     Route::get('/setting/ejm-expansion-joint', [EjmExpansionJointController::class, 'index'])->name('setting.ejm-expansion-joint.index');
     Route::get('/setting/ejm-expansion-joint/create', [EjmExpansionJointController::class, 'create'])->name('setting.ejm-expansion-joint.create');
     Route::get('/setting/ejm-expansion-joint/template/csv', [EjmExpansionJointController::class, 'templateCsv'])->name('setting.ejm-expansion-joint.template.csv');
@@ -92,6 +103,10 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::post('/quotations/inline-companies', [QuotationController::class, 'storeInlineCompany'])->name('quotations.inline-companies.store');
+    Route::post('/quotations/inline-marketings', [QuotationController::class, 'storeInlineMarketing'])->name('quotations.inline-marketings.store');
+    Route::resource('quotations', QuotationController::class);
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -140,11 +155,8 @@ Route::prefix('master')->name('master.')->middleware('auth')->group(function () 
 
 Route::prefix('settings')->name('settings.')->group(function () {
 
-    Route::post('quotations/inline-companies', [QuotationController::class, 'storeInlineCompany'])->name('quotations.inline-companies.store');
-    Route::post('quotations/inline-marketings', [QuotationController::class, 'storeInlineMarketing'])->name('quotations.inline-marketings.store');
     Route::resource('companies', CompanyController::class);
     Route::resource('marketings', MarketingController::class);
-    Route::resource('quotations', QuotationController::class);
 
 });
 

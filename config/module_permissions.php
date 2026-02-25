@@ -6,6 +6,8 @@ return [
         'create' => 'Create',
         'edit' => 'Edit',
         'delete' => 'Delete',
+        'import' => 'Import',
+        'export' => 'Export',
     ],
 
     'groups' => [
@@ -20,8 +22,10 @@ return [
         'Settings' => [
             'settings.companies' => 'Companies',
             'settings.marketings' => 'Marketings',
-            'settings.quotations' => 'Quotations',
             'settings.ejm-validation' => 'Validasi Data EJM',
+        ],
+        'Sales' => [
+            'quotations' => 'Quotations',
         ],
     ],
 ];

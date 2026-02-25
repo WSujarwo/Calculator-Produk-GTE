@@ -44,22 +44,28 @@
                         {{ $activeTab === 'actual' ? 'ACTUAL DETAIL CALCULATION' : 'CALCULATION OF CAN LENGTH' }}
                     </h3>
                     <div class="flex gap-2">
-                        <a href="{{ route('setting.ejm-validation.create', ['tab' => $activeTab]) }}"
-                           class="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
-                            + Add Data
-                        </a>
+                        @can('settings.ejm-validation.create')
+                            <a href="{{ route('setting.ejm-validation.create', ['tab' => $activeTab]) }}"
+                               class="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                                + Add Data
+                            </a>
+                        @endcan
+                        @can('settings.ejm-validation.export')
                             <a href="{{ route('setting.ejm-validation.template.csv') }}"
                             class="inline-flex items-center rounded-lg bg-slate-700 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800">
                             Template CSV
-                        </a>
-                        <a href="{{ route('setting.ejm-validation.template.excel') }}"
-                           class="inline-flex items-center rounded-lg bg-slate-700 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800">
-                            Template Excel
-                        </a>
-                        <button type="button" id="openImportModal"
-                                class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
-                            Import CSV/XLSX
-                        </button>
+                            </a>
+                            <a href="{{ route('setting.ejm-validation.template.excel') }}"
+                               class="inline-flex items-center rounded-lg bg-slate-700 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800">
+                                Template Excel
+                            </a>
+                        @endcan
+                        @can('settings.ejm-validation.import')
+                            <button type="button" id="openImportModal"
+                                    class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+                                Import CSV/XLSX
+                            </button>
+                        @endcan
                     </div>
                 </div>
 
@@ -126,10 +132,12 @@
                             @forelse ($rows as $row)
                                 <tr class="hover:bg-slate-50">
                                     <td class="px-3 py-2 border border-slate-200 whitespace-nowrap">
-                                        <a href="{{ route('setting.ejm-validation.index', ['edit' => $row->id, 'tab' => $activeTab]) }}"
-                                           class="inline-flex items-center rounded-lg border border-indigo-200 bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">
-                                            Edit
-                                        </a>
+                                        @can('settings.ejm-validation.edit')
+                                            <a href="{{ route('setting.ejm-validation.index', ['edit' => $row->id, 'tab' => $activeTab]) }}"
+                                               class="inline-flex items-center rounded-lg border border-indigo-200 bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">
+                                                Edit
+                                            </a>
+                                        @endcan
                                     </td>
                                     @if ($activeTab === 'actual')
                                         <td class="px-3 py-2 border border-slate-200">{{ $row->size_inch }}</td>
@@ -185,6 +193,7 @@
         </div>
     </div>
 
+    @can('settings.ejm-validation.create')
     <div id="createModal" class="fixed inset-0 z-50 {{ $openCreateModal ? 'flex' : 'hidden' }} items-center justify-center bg-black/40 px-4">
         <div class="w-full max-w-5xl rounded-2xl bg-white p-6 shadow-xl">
             <div class="mb-4 flex items-center justify-between">
@@ -226,7 +235,9 @@
             </form>
         </div>
     </div>
+    @endcan
 
+    @can('settings.ejm-validation.edit')
     <div id="editModal" class="fixed inset-0 z-50 {{ $editing ? 'flex' : 'hidden' }} items-center justify-center bg-black/40 px-4">
         <div class="w-full max-w-5xl rounded-2xl bg-white p-6 shadow-xl">
             <div class="mb-4 flex items-center justify-between">
@@ -268,7 +279,9 @@
             @endif
         </div>
     </div>
+    @endcan
 
+    @can('settings.ejm-validation.import')
     <div id="importModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4">
         <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
             <div class="mb-4 flex items-center justify-between">
@@ -296,6 +309,7 @@
             </form>
         </div>
     </div>
+    @endcan
 
     <script>
         (function () {

@@ -13,6 +13,15 @@ class EjmValidationController extends Controller
 {
     private const TABLE = 'validasi_dataejm_can_length_calculations';
 
+    public function __construct()
+    {
+        $this->middleware('permission:settings.ejm-validation.view')->only(['index']);
+        $this->middleware('permission:settings.ejm-validation.create')->only(['create', 'store']);
+        $this->middleware('permission:settings.ejm-validation.edit')->only(['update']);
+        $this->middleware('permission:settings.ejm-validation.import')->only(['import']);
+        $this->middleware('permission:settings.ejm-validation.export')->only(['templateCsv', 'templateExcel']);
+    }
+
     public function index(Request $request): View
     {
         $rows = DB::table(self::TABLE)->orderBy('nb')->paginate(50)->withQueryString();
@@ -29,6 +38,7 @@ class EjmValidationController extends Controller
         $validationMenus = [
             ['key' => 'actual', 'label' => 'Actual Design Calculation', 'url' => route('setting.ejm-validation.index', ['tab' => 'actual'])],
             ['key' => 'can-length', 'label' => 'Calculation of CAN Length', 'url' => route('setting.ejm-validation.index', ['tab' => 'can-length'])],
+            ['key' => 'proses', 'label' => 'Validasi Proses', 'url' => route('setting.ejm-validation-proses.index')],
             ['key' => 'expansion-joint', 'label' => 'Expansion Joint', 'url' => route('setting.ejm-expansion-joint.index')],
         ];
 

@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             DurasiProsesValidationGppSeeder::class,
             DataValidasiEjmActualDesainCalculationSeeder::class,
             DataValidasiEjmExpansionJointSeeder::class,
+            DataValidasiEjmProsesSeeder::class,
         ]);
     }
 }

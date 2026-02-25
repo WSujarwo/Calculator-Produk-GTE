@@ -12,11 +12,10 @@ class QuotationController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:settings.quotations.view')->only(['index', 'show']);
-        $this->middleware('permission:settings.quotations.create')->only(['create', 'store', 'import']);
-        $this->middleware('permission:settings.quotations.edit')->only(['edit', 'update']);
-        $this->middleware('permission:settings.quotations.delete')->only(['destroy']);
-        $this->middleware('permission:settings.quotations.create')->only(['storeInlineCompany', 'storeInlineMarketing']);
+        $this->middleware('permission:quotations.view')->only(['index', 'show']);
+        $this->middleware('permission:quotations.create')->only(['create', 'store', 'storeInlineCompany', 'storeInlineMarketing']);
+        $this->middleware('permission:quotations.edit')->only(['edit', 'update']);
+        $this->middleware('permission:quotations.delete')->only(['destroy']);
     }
 
     public function index()
@@ -25,12 +24,6 @@ class QuotationController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('settings.quotations.index', compact('quotations'));
-    }
-
-    public function create()
-    {
-        $returnTo = request()->query('return_to');
         $companies = Company::orderBy('company_name')->get();
         $marketings = Marketing::orderBy('name')->get();
         $customerOptions = $companies->map(function ($company) {
@@ -47,7 +40,27 @@ class QuotationController extends Controller
             ];
         })->values();
 
-        return view('settings.quotations.create', compact('companies', 'marketings', 'customerOptions', 'marketingOptions', 'returnTo'));
+        $editing = null;
+        if (request()->filled('edit')) {
+            $editing = Quotation::find((int) request()->query('edit'));
+        }
+
+        return view('settings.quotations.index', [
+            'quotations' => $quotations,
+            'customerOptions' => $customerOptions,
+            'marketingOptions' => $marketingOptions,
+            'openCreateModal' => request()->boolean('create'),
+            'editing' => $editing,
+            'returnTo' => request()->query('return_to'),
+        ]);
+    }
+
+    public function create()
+    {
+        return redirect()->route('quotations.index', [
+            'create' => 1,
+            'return_to' => request()->query('return_to'),
+        ]);
     }
 
     public function store(Request $request)
@@ -100,29 +113,13 @@ class QuotationController extends Controller
                 ->with('status', "Quotation {$quotation->quotation_no} berhasil dibuat. Lanjut input produk GPP.");
         }
 
-        return redirect()->route('settings.quotations.index')
+        return redirect()->route('quotations.index')
             ->with('success', 'Quotation created successfully.');
     }
 
     public function edit(Quotation $quotation)
     {
-        $companies = Company::orderBy('company_name')->get();
-        $marketings = Marketing::orderBy('name')->get();
-        $customerOptions = $companies->map(function ($company) {
-            return [
-                'id' => $company->id,
-                'label' => trim($company->company_code . ' - ' . $company->company_name),
-                'address' => $company->address ?? '',
-            ];
-        })->values();
-        $marketingOptions = $marketings->map(function ($marketing) {
-            return [
-                'id' => $marketing->id,
-                'label' => trim($marketing->marketing_no . ' - ' . $marketing->name),
-            ];
-        })->values();
-
-        return view('settings.quotations.edit', compact('quotation', 'companies', 'marketings', 'customerOptions', 'marketingOptions'));
+        return redirect()->route('quotations.index', ['edit' => $quotation->id]);
     }
 
     public function show(Quotation $quotation)
@@ -168,7 +165,7 @@ class QuotationController extends Controller
             'result_status' => $validated['result_status'],
         ]);
 
-        return redirect()->route('settings.quotations.index')
+        return redirect()->route('quotations.index')
             ->with('success', 'Quotation updated successfully.');
     }
 
@@ -176,7 +173,7 @@ class QuotationController extends Controller
     {
         $quotation->delete();
 
-        return redirect()->route('settings.quotations.index')
+        return redirect()->route('quotations.index')
             ->with('success', 'Quotation deleted successfully.');
     }
 

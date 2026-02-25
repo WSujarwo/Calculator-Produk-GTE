@@ -13,6 +13,8 @@ Action standar yang dipakai:
 - `create`
 - `edit`
 - `delete`
+- `import`
+- `export`
 
 Semua modul dan action dikonfigurasi di:
 - `config/module_permissions.php`
