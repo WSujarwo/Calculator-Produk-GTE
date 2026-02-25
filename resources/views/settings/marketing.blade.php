@@ -1,8 +1,14 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="px-6 lg:px-10">
-            <h2 class="font-bold text-2xl text-gray-900 leading-tight">List Marketing</h2>
-            <p class="text-sm text-gray-600">Input, update, dan delete data marketing.</p>
+        <div class="px-6 lg:px-10 flex items-start justify-between gap-3">
+            <div>
+                <h2 class="font-bold text-2xl text-gray-900 leading-tight">List Marketing</h2>
+                <p class="text-sm text-gray-600">Input, update, dan delete data marketing.</p>
+            </div>
+            <a href="{{ route('setting') }}"
+               class="inline-flex items-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                Back to Settings
+            </a>
         </div>
     </x-slot>
 
@@ -121,4 +127,3 @@
         </div>
     </div>
 </x-app-layout>
-

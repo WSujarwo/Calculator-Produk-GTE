@@ -70,6 +70,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::delete('/setting/marketing/{id}', [MarketingController::class, 'destroy'])->name('setting.marketing.destroy');
 
     Route::get('/setting/customer', [CustomerController::class, 'index'])->name('setting.customer.index');
+    Route::get('/setting/gpp-validation', [SettingController::class, 'gppValidation'])->name('setting.gpp-validation');
+    Route::post('/setting/gpp-validation/store', [SettingController::class, 'gppValidationStore'])->name('setting.gpp-validation.store');
+    Route::post('/setting/gpp-validation/update', [SettingController::class, 'gppValidationUpdate'])->name('setting.gpp-validation.update');
 
     Route::get('/setting/role-access', [RolePermissionController::class, 'index'])->name('setting.role-access');
     Route::put('/setting/role-access/roles/{role}', [RolePermissionController::class, 'updateRolePermissions'])->name('setting.role-access.roles.update');
