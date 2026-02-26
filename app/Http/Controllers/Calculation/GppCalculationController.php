@@ -23,8 +23,12 @@ class GppCalculationController extends Controller
 
     public function validateInput(Request $request)
     {
+        $skipQuotationValidation = $request->boolean('skip_quotation_validation');
+
         $validator = Validator::make($request->all(), [
-            'quotation_id' => ['required', 'integer', Rule::exists('quotations', 'id')],
+            'quotation_id' => $skipQuotationValidation
+                ? ['nullable', 'integer', Rule::exists('quotations', 'id')]
+                : ['required', 'integer', Rule::exists('quotations', 'id')],
             'type' => [
                 'required',
                 'string',
@@ -81,7 +85,8 @@ class GppCalculationController extends Controller
         $validator->validate();
 
         $input = [
-            'quotation_id' => (int) $request->input('quotation_id'),
+            'quotation_id' => $request->filled('quotation_id') ? (int) $request->input('quotation_id') : null,
+            'skip_quotation_validation' => $skipQuotationValidation,
             'type' => (string) $request->input('type'),
             'mesin' => str_pad((string) $request->input('mesin'), 2, '0', STR_PAD_LEFT),
             'size' => str_pad((string) $request->input('size'), 2, '0', STR_PAD_LEFT),
@@ -146,11 +151,12 @@ class GppCalculationController extends Controller
 
         $defaultInput = [
             'quotation_id' => null,
-            'type' => 'GTE9043AI',
-            'mesin' => '24',
-            'size' => '08',
-            'berat' => 100,
-            'kelebihan_pengiriman' => 20,
+            'skip_quotation_validation' => false,
+            'type' => null,
+            'mesin' => null,
+            'size' => null,
+            'berat' => null,
+            'kelebihan_pengiriman' => null,
         ];
         $activeInput = array_merge($defaultInput, $currentInput ?? []);
 
@@ -169,9 +175,9 @@ class GppCalculationController extends Controller
             'mesinSizeMap' => $mesinSizeMap,
             'typeMesinSizeMap' => $typeMesinSizeMap,
             'selectedQuotation' => $selectedQuotation,
-            'defaultType' => 'GTE9043AI',
-            'defaultMesin' => '24',
-            'defaultSize' => '08',
+            'defaultType' => null,
+            'defaultMesin' => null,
+            'defaultSize' => null,
             'calc' => $calc,
             'activeInput' => $activeInput,
         ];

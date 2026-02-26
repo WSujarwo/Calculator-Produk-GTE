@@ -11,19 +11,21 @@
         $calc = $calc ?? null;
         $activeInput = $activeInput ?? [
             'quotation_id' => null,
-            'type' => '-- Select Type --',
-            'mesin' => $defaultMesin ?? '-- Select --',
-            'size' => $defaultSize ?? '-- Select --',
-            'berat' => '-- Select --',
-            'kelebihan_pengiriman' => '-- Select --',
+            'skip_quotation_validation' => false,
+            'type' => null,
+            'mesin' => null,
+            'size' => null,
+            'berat' => null,
+            'kelebihan_pengiriman' => null,
         ];
         $activeInput = [
             'quotation_id' => old('quotation_id', $activeInput['quotation_id'] ?? null),
-            'type' => old('type', $activeInput['type'] ?? ($defaultType ?? '-- Select --')),
-            'mesin' => old('mesin', $activeInput['mesin'] ?? ($defaultMesin ?? '-- Select --')),
-            'size' => old('size', $activeInput['size'] ?? ($defaultSize ?? '-- Select --')),
-            'berat' => old('berat', $activeInput['berat'] ?? '-- Select --'),
-            'kelebihan_pengiriman' => old('kelebihan_pengiriman', $activeInput['kelebihan_pengiriman'] ??'-- Select --'),
+            'skip_quotation_validation' => old('skip_quotation_validation', $activeInput['skip_quotation_validation'] ?? false),
+            'type' => old('type', $activeInput['type'] ?? ''),
+            'mesin' => old('mesin', $activeInput['mesin'] ?? ''),
+            'size' => old('size', $activeInput['size'] ?? ''),
+            'berat' => old('berat', $activeInput['berat'] ?? ''),
+            'kelebihan_pengiriman' => old('kelebihan_pengiriman', $activeInput['kelebihan_pengiriman'] ?? ''),
         ];
         $areaOrder = ['diagonal_sudut', 'diagonal_tengah', 'corner', 'core', 'inner', 'core_cord'];
         $gpCardMap = [
@@ -45,6 +47,7 @@
             <form id="gpp-main-form" class="p-4 lg:p-5 space-y-4" method="POST" action="{{ route('calculation.gpp.validate') }}">
                 @csrf
                 <input type="hidden" id="gpp-quotation-id" name="quotation_id" value="{{ $activeInput['quotation_id'] ?? '' }}">
+                <input type="hidden" id="gpp-skip-quotation-validation" name="skip_quotation_validation" value="{{ !empty($activeInput['skip_quotation_validation']) ? 1 : 0 }}">
 
                 <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
                     <div class="rounded-xl border border-gray-200 overflow-hidden">
@@ -59,7 +62,7 @@
                                         <select id="gpp-type" name="type" class="w-full rounded-md border-indigo-300 bg-white text-sm focus:border-indigo-500 focus:ring-indigo-500">
                                             <option value="">-- Pilih Type --</option>
                                             @foreach ($types as $type)
-                                                <option value="{{ $type }}" @selected(($activeInput['type'] ?? $defaultType) === $type)>{{ $type }}</option>
+                                                <option value="{{ $type }}" @selected(($activeInput['type'] ?? '') === $type)>{{ $type }}</option>
                                             @endforeach
                                         </select>
                                     </td>
@@ -73,7 +76,7 @@
                                         <select id="gpp-mesin" name="mesin" class="w-full rounded-md border-indigo-300 bg-white text-sm focus:border-indigo-500 focus:ring-indigo-500">
                                             <option value="">-- Pilih Mesin --</option>
                                             @foreach ($mesins as $mesin)
-                                                <option value="{{ $mesin }}" @selected(($activeInput['mesin'] ?? $defaultMesin) === $mesin)>{{ $mesin }}</option>
+                                                <option value="{{ $mesin }}" @selected(($activeInput['mesin'] ?? '') === $mesin)>{{ $mesin }}</option>
                                             @endforeach
                                         </select>
                                     </td>
@@ -87,7 +90,7 @@
                                         <select id="gpp-size" name="size" class="w-full rounded-md border-indigo-300 bg-white text-sm focus:border-indigo-500 focus:ring-indigo-500">
                                             <option value="">-- Pilih Size --</option>
                                             @foreach ($sizes as $size)
-                                                <option value="{{ $size }}" @selected(($activeInput['size'] ?? $defaultSize) === $size)>{{ $size }}</option>
+                                                <option value="{{ $size }}" @selected(($activeInput['size'] ?? '') === $size)>{{ $size }}</option>
                                             @endforeach
                                         </select>
                                     </td>
@@ -113,7 +116,7 @@
                                         <span class="ml-2 rounded bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">Input</span>
                                     </td>
                                     <td class="bg-indigo-50 px-3 py-2">
-                                        <input type="number" step="0.01" min="0" name="berat" value="{{ $activeInput['berat'] ?? 100 }}" class="w-full rounded-md border-indigo-300 bg-white text-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                                        <input type="number" step="0.01" min="0" name="berat" value="{{ $activeInput['berat'] ?? '' }}" class="w-full rounded-md border-indigo-300 bg-white text-sm focus:border-indigo-500 focus:ring-indigo-500" />
                                     </td>
                                 </tr>
                                 <tr>
@@ -122,7 +125,7 @@
                                         <span class="ml-2 rounded bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">Input</span>
                                     </td>
                                     <td class="bg-indigo-50 px-3 py-2">
-                                        <input type="number" step="0.01" min="0" name="kelebihan_pengiriman" value="{{ $activeInput['kelebihan_pengiriman'] ?? 5 }}" class="w-full rounded-md border-indigo-300 bg-white text-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                                        <input type="number" step="0.01" min="0" name="kelebihan_pengiriman" value="{{ $activeInput['kelebihan_pengiriman'] ?? '' }}" class="w-full rounded-md border-indigo-300 bg-white text-sm focus:border-indigo-500 focus:ring-indigo-500" />
                                     </td>
                                 </tr>
                                 <tr>
@@ -201,10 +204,19 @@
                             Quotation Sudah Dibuat
                         </button>
                     @else
-                        <a href="{{ route('quotations.index', ['create' => 1, 'return_to' => 'gpp']) }}" class="inline-flex items-center justify-center rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100">
+                        <a href="{{ route('settings.quotations.create', ['return_to' => 'gpp']) }}" class="inline-flex items-center justify-center rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100">
                             Create Quotation
                         </a>
                     @endif
+                </div>
+                <div>
+                    <button
+                        id="ws-skip-quotation-btn"
+                        type="button"
+                        data-enabled="{{ !empty($activeInput['skip_quotation_validation']) ? 1 : 0 }}"
+                        class="inline-flex items-center rounded-md border px-3 py-1 text-xs font-medium">
+                        Mode Testing Quotation: {{ !empty($activeInput['skip_quotation_validation']) ? 'ON' : 'OFF' }}
+                    </button>
                 </div>
 
                 <div class="grid gap-4 lg:grid-cols-2">
@@ -218,7 +230,7 @@
                                         <select id="ws-type" class="w-full rounded-md border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
                                             <option value="">-- Pilih Type --</option>
                                             @foreach ($types as $type)
-                                                <option value="{{ $type }}" @selected(($activeInput['type'] ?? $defaultType) === $type)>{{ $type }}</option>
+                                                <option value="{{ $type }}" @selected(($activeInput['type'] ?? '') === $type)>{{ $type }}</option>
                                             @endforeach
                                         </select>
                                     </td>
@@ -229,7 +241,7 @@
                                         <select id="ws-mesin" class="w-full rounded-md border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
                                             <option value="">-- Pilih Mesin --</option>
                                             @foreach ($mesins as $mesin)
-                                                <option value="{{ $mesin }}" @selected(($activeInput['mesin'] ?? $defaultMesin) === $mesin)>{{ $mesin }}</option>
+                                                <option value="{{ $mesin }}" @selected(($activeInput['mesin'] ?? '') === $mesin)>{{ $mesin }}</option>
                                             @endforeach
                                         </select>
                                     </td>
@@ -240,7 +252,7 @@
                                         <select id="ws-size" class="w-full rounded-md border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
                                             <option value="">-- Pilih Size --</option>
                                             @foreach ($sizes as $size)
-                                                <option value="{{ $size }}" @selected(($activeInput['size'] ?? $defaultSize) === $size)>{{ $size }}</option>
+                                                <option value="{{ $size }}" @selected(($activeInput['size'] ?? '') === $size)>{{ $size }}</option>
                                             @endforeach
                                         </select>
                                     </td>
@@ -259,6 +271,14 @@
                                 </tr>
                             </tbody>
                         </table>
+                        <div class="flex items-center justify-end gap-2 border-t border-slate-200 bg-slate-50 px-3 py-3">
+                            <button id="gpp-reset-btn" type="button" class="inline-flex h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                                Reset Input
+                            </button>
+                            <button id="gpp-submit-btn" type="submit" form="gpp-main-form" class="inline-flex h-10 items-center justify-center rounded-lg bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-700">
+                                Hitung
+                            </button>
+                        </div>
                     </div>
                     <div class="rounded-xl border border-slate-200 overflow-hidden">
                         <div class="bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-900">Point Hasil Kalkulasi</div>
@@ -321,18 +341,17 @@
 
                 <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
                     <h4 class="text-sm font-semibold text-slate-900">Daftar Produk Dalam Quotation Terpilih</h4>
-                    <div class="flex flex-wrap items-center gap-2 xl:justify-end">
-                        <button id="gpp-reset-btn" type="button" class="inline-flex h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                            Reset Input
-                        </button>
+                    <div class="flex w-full flex-wrap items-center justify-between gap-2 xl:w-auto xl:justify-end">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button id="clear-gpp-items-btn" type="button" class="inline-flex h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                                Kosongkan Daftar
+                            </button>
+                            <button id="toggle-gpp-detail-btn" type="button" class="inline-flex h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                                Lihat Detail Kalkulasi
+                            </button>
+                        </div>
                         <button id="add-gpp-item-btn" type="button" class="inline-flex h-10 items-center justify-center rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50" {{ isset($calc) ? '' : 'disabled' }}>
                             Tambah Produk Ini
-                        </button>
-                        <button id="clear-gpp-items-btn" type="button" class="inline-flex h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                            Kosongkan Daftar
-                        </button>
-                        <button id="toggle-gpp-detail-btn" type="button" class="inline-flex h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                            Lihat Detail Kalkulasi
                         </button>
                     </div>
                 </div>
@@ -621,6 +640,8 @@
             const mesinSelect = document.getElementById('gpp-mesin');
             const sizeSelect = document.getElementById('gpp-size');
             const quotationSelect = document.getElementById('gpp-quotation-id');
+            const skipQuotationInput = document.getElementById('gpp-skip-quotation-validation');
+            const wsSkipQuotationBtn = document.getElementById('ws-skip-quotation-btn');
             const mainForm = document.getElementById('gpp-main-form');
             const wsType = document.getElementById('ws-type');
             const wsMesin = document.getElementById('ws-mesin');
@@ -637,12 +658,68 @@
             const itemsBody = document.getElementById('gpp-quotation-items-body');
             const mesinSizeMap = @json($mesinSizeMap);
             const typeMesinSizeMap = @json($typeMesinSizeMap);
-            let preferredSize = @json($activeInput['size'] ?? $defaultSize);
+            let preferredSize = @json($activeInput['size'] ?? '');
             let autoCalcTimer = null;
+            const draftStorageKey = 'gpp_workspace_draft_v1';
+            const gppIndexUrl = @json(route('calculation.gpp'));
             const currentCalc = @json(isset($calc) ? [
                 'kode_barang' => $calc['kode_barang'] ?? '-',
                 'total_standard' => $calc['total_harga']['total_standard'] ?? 0,
             ] : null);
+
+            function isSkipQuotationEnabled() {
+                return !!(skipQuotationInput && skipQuotationInput.value === '1');
+            }
+
+            function renderSkipQuotationButton() {
+                if (!wsSkipQuotationBtn) return;
+                const enabled = isSkipQuotationEnabled();
+                wsSkipQuotationBtn.dataset.enabled = enabled ? '1' : '0';
+                wsSkipQuotationBtn.textContent = `Mode Testing Quotation: ${enabled ? 'ON' : 'OFF'}`;
+                wsSkipQuotationBtn.className = enabled
+                    ? 'mt-2 inline-flex items-center rounded-md border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700'
+                    : 'mt-2 inline-flex items-center rounded-md border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-600';
+            }
+
+            function saveWorkspaceDraft() {
+                const draft = {
+                    quotation_id: quotationSelect?.value || '',
+                    skip_quotation_validation: isSkipQuotationEnabled() ? 1 : 0,
+                    type: wsType?.value || '',
+                    mesin: wsMesin?.value || '',
+                    size: wsSize?.value || '',
+                    berat: wsBerat?.value || '',
+                    kelebihan: wsKelebihan?.value || '',
+                };
+                localStorage.setItem(draftStorageKey, JSON.stringify(draft));
+            }
+
+            function loadWorkspaceDraft() {
+                try {
+                    const raw = localStorage.getItem(draftStorageKey);
+                    if (!raw) return;
+                    const draft = JSON.parse(raw);
+                    if (!draft || typeof draft !== 'object') return;
+
+                    const currentQuotation = quotationSelect?.value || '';
+                    const draftQuotation = draft.quotation_id || '';
+                    const skipFromDraft = Number(draft.skip_quotation_validation || 0) === 1;
+                    if (!skipFromDraft && currentQuotation !== draftQuotation) return;
+
+                    if (skipQuotationInput) skipQuotationInput.value = skipFromDraft ? '1' : '0';
+                    renderSkipQuotationButton();
+
+                    if (wsType && draft.type) wsType.value = draft.type;
+                    if (wsMesin && draft.mesin) wsMesin.value = draft.mesin;
+                    syncMainFromWorkspace();
+                    if (wsSize && draft.size) wsSize.value = draft.size;
+                    if (wsBerat && draft.berat !== '') wsBerat.value = draft.berat;
+                    if (wsKelebihan && draft.kelebihan !== '') wsKelebihan.value = draft.kelebihan;
+                    syncMainFromWorkspace();
+                } catch (_) {
+                    // ignore invalid draft
+                }
+            }
 
             function syncSizeOptions() {
                 const type = typeSelect.value;
@@ -682,16 +759,45 @@
                 preferredSize = null;
             }
 
+            function syncWorkspaceSizeOptions() {
+                if (!wsSize || !sizeSelect) return;
+                const availableSizes = Array.from(sizeSelect.options)
+                    .map(function (opt) { return opt.value; })
+                    .filter(function (v) { return v !== ''; });
+                const currentWsSize = wsSize.value;
+
+                wsSize.innerHTML = '';
+                const emptyOption = document.createElement('option');
+                emptyOption.value = '';
+                emptyOption.textContent = '-- Pilih Size --';
+                wsSize.appendChild(emptyOption);
+
+                availableSizes.forEach(function (size) {
+                    const option = document.createElement('option');
+                    option.value = size;
+                    option.textContent = size;
+                    wsSize.appendChild(option);
+                });
+
+                wsSize.value = availableSizes.includes(currentWsSize)
+                    ? currentWsSize
+                    : (sizeSelect.value || '');
+            }
+
             mesinSelect.addEventListener('change', syncSizeOptions);
             typeSelect.addEventListener('change', syncSizeOptions);
             function isAutoCalcReady() {
-                const hasQuotation = !!(quotationSelect && quotationSelect.value);
+                const skipQuotation = isSkipQuotationEnabled();
+                const hasQuotation = skipQuotation || !!(quotationSelect && quotationSelect.value);
                 const hasType = !!(typeSelect && typeSelect.value);
                 const hasMesin = !!(mesinSelect && mesinSelect.value);
                 const hasSize = !!(sizeSelect && sizeSelect.value);
                 const hasBerat = !!(beratInput && beratInput.value !== '');
                 const hasKelebihan = !!(kelebihanInput && kelebihanInput.value !== '');
-                return hasQuotation && hasType && hasMesin && hasSize && hasBerat && hasKelebihan;
+                const isSizeAllowed = hasSize && Array.from(sizeSelect.options).some(function (opt) {
+                    return opt.value === sizeSelect.value;
+                });
+                return hasQuotation && hasType && hasMesin && hasSize && isSizeAllowed && hasBerat && hasKelebihan;
             }
 
             function scheduleAutoCalculate() {
@@ -705,6 +811,7 @@
             function syncWorkspaceFromMain() {
                 if (wsType) wsType.value = typeSelect?.value || '';
                 if (wsMesin) wsMesin.value = mesinSelect?.value || '';
+                syncWorkspaceSizeOptions();
                 if (wsSize) wsSize.value = sizeSelect?.value || '';
                 if (wsBerat) wsBerat.value = beratInput?.value || '';
                 if (wsKelebihan) wsKelebihan.value = kelebihanInput?.value || '';
@@ -714,46 +821,60 @@
                 if (typeSelect && wsType) typeSelect.value = wsType.value;
                 if (mesinSelect && wsMesin) mesinSelect.value = wsMesin.value;
                 syncSizeOptions();
-                if (sizeSelect && wsSize) sizeSelect.value = wsSize.value;
+                syncWorkspaceSizeOptions();
+                if (sizeSelect && wsSize) {
+                    sizeSelect.value = wsSize.value;
+                    wsSize.value = sizeSelect.value;
+                }
                 if (beratInput && wsBerat) beratInput.value = wsBerat.value;
                 if (kelebihanInput && wsKelebihan) kelebihanInput.value = wsKelebihan.value;
             }
 
             wsType?.addEventListener('change', function () {
                 syncMainFromWorkspace();
-                scheduleAutoCalculate();
+                saveWorkspaceDraft();
             });
             wsMesin?.addEventListener('change', function () {
                 syncMainFromWorkspace();
-                scheduleAutoCalculate();
+                saveWorkspaceDraft();
             });
             wsSize?.addEventListener('change', function () {
                 syncMainFromWorkspace();
-                scheduleAutoCalculate();
+                saveWorkspaceDraft();
             });
             wsBerat?.addEventListener('input', function () {
                 syncMainFromWorkspace();
-                scheduleAutoCalculate();
+                saveWorkspaceDraft();
             });
             wsKelebihan?.addEventListener('input', function () {
                 syncMainFromWorkspace();
+                saveWorkspaceDraft();
                 scheduleAutoCalculate();
+            });
+            wsKelebihan?.addEventListener('change', function () {
+                syncMainFromWorkspace();
+                saveWorkspaceDraft();
+                scheduleAutoCalculate();
+            });
+
+            wsSkipQuotationBtn?.addEventListener('click', function () {
+                const enabled = !isSkipQuotationEnabled();
+                if (skipQuotationInput) skipQuotationInput.value = enabled ? '1' : '0';
+                renderSkipQuotationButton();
+                saveWorkspaceDraft();
             });
 
             quotationSelect?.addEventListener('change', function () {
                 renderItemList();
-                scheduleAutoCalculate();
+                saveWorkspaceDraft();
             });
             document.getElementById('gpp-reset-btn')?.addEventListener('click', function () {
-                typeSelect.value = '';
-                mesinSelect.value = '';
-                preferredSize = '';
-                if (beratInput) beratInput.value = '';
-                if (kelebihanInput) kelebihanInput.value = '';
-                syncSizeOptions();
-                typeSelect.dispatchEvent(new Event('change'));
-                mesinSelect.dispatchEvent(new Event('change'));
-                syncWorkspaceFromMain();
+                localStorage.removeItem(draftStorageKey);
+                const quotationId = quotationSelect?.value || '';
+                const target = quotationId
+                    ? `${gppIndexUrl}?quotation_id=${encodeURIComponent(quotationId)}`
+                    : gppIndexUrl;
+                window.location.href = target;
             });
 
             function getStorageKey() {
@@ -852,7 +973,10 @@
             });
 
             syncSizeOptions();
+            syncWorkspaceSizeOptions();
             syncWorkspaceFromMain();
+            renderSkipQuotationButton();
+            loadWorkspaceDraft();
             renderItemList();
         });
     </script>
