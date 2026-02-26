@@ -123,30 +123,15 @@ class GppCalculationController extends Controller
             ->orderBy('size_code')
             ->pluck('size_code');
 
-        $mesinSizeMap = DB::table('durasi_proses_gpp')
+        $mesinSizeMap = DB::table('durasi_proses_dropdown_mesin_size_gpp')
             ->where('is_active', true)
+            ->where('list_type', 'full')
             ->select('mesin_code', 'size_code')
             ->orderBy('mesin_code')
             ->orderBy('size_code')
             ->get()
             ->groupBy('mesin_code')
             ->map(fn ($rows) => $rows->pluck('size_code')->values())
-            ->toArray();
-
-        $typeMesinSizeMap = DB::table('tabel_prioritas_mesin_gpp')
-            ->where('is_active', true)
-            ->select('type_code', 'mesin_code', 'size_code')
-            ->orderBy('type_code')
-            ->orderBy('mesin_code')
-            ->orderBy('size_code')
-            ->get()
-            ->groupBy('type_code')
-            ->map(function ($typeRows) {
-                return $typeRows
-                    ->groupBy('mesin_code')
-                    ->map(fn ($mesinRows) => $mesinRows->pluck('size_code')->values())
-                    ->toArray();
-            })
             ->toArray();
 
         $defaultInput = [
@@ -173,7 +158,6 @@ class GppCalculationController extends Controller
             'mesins' => $mesins,
             'sizes' => $sizes,
             'mesinSizeMap' => $mesinSizeMap,
-            'typeMesinSizeMap' => $typeMesinSizeMap,
             'selectedQuotation' => $selectedQuotation,
             'defaultType' => null,
             'defaultMesin' => null,

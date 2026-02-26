@@ -204,7 +204,7 @@
                             Quotation Sudah Dibuat
                         </button>
                     @else
-                        <a href="{{ route('settings.quotations.create', ['return_to' => 'gpp']) }}" class="inline-flex items-center justify-center rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100">
+                        <a href="{{ route('quotations.create', ['return_to' => 'gpp']) }}" class="inline-flex items-center justify-center rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100">
                             Create Quotation
                         </a>
                     @endif
@@ -657,7 +657,6 @@
             const mainCalculationCard = document.getElementById('gpp-main-calculation-card');
             const itemsBody = document.getElementById('gpp-quotation-items-body');
             const mesinSizeMap = @json($mesinSizeMap);
-            const typeMesinSizeMap = @json($typeMesinSizeMap);
             let preferredSize = @json($activeInput['size'] ?? '');
             let autoCalcTimer = null;
             const draftStorageKey = 'gpp_workspace_draft_v1';
@@ -722,7 +721,6 @@
             }
 
             function syncSizeOptions() {
-                const type = typeSelect.value;
                 const mesin = mesinSelect.value;
                 if (!mesin) {
                     sizeSelect.innerHTML = '';
@@ -734,8 +732,7 @@
                     return;
                 }
 
-                const allowedByTypeMesin = (typeMesinSizeMap[type] && typeMesinSizeMap[type][mesin]) || [];
-                const allowedSizes = allowedByTypeMesin.length > 0 ? allowedByTypeMesin : (mesinSizeMap[mesin] || []);
+                const allowedSizes = mesinSizeMap[mesin] || [];
                 const currentSize = sizeSelect.value;
                 const selectedSize = allowedSizes.includes(currentSize)
                     ? currentSize
@@ -785,7 +782,6 @@
             }
 
             mesinSelect.addEventListener('change', syncSizeOptions);
-            typeSelect.addEventListener('change', syncSizeOptions);
             function isAutoCalcReady() {
                 const skipQuotation = isSkipQuotationEnabled();
                 const hasQuotation = skipQuotation || !!(quotationSelect && quotationSelect.value);
