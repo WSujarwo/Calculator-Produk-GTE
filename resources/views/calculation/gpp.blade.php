@@ -368,7 +368,7 @@
                                 <th class="px-3 py-2 text-left">Size</th>
                                 <th class="px-3 py-2 text-right">Berat</th>
                                 <th class="px-3 py-2 text-left">Kode Barang</th>
-                                <th class="px-3 py-2 text-right">Total Standarisasi</th>
+                                <th class="px-3 py-2 text-right">Price</th>
                                 <th class="px-3 py-2 text-center">Aksi</th>
                             </tr>
                         </thead>
