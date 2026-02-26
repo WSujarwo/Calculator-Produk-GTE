@@ -12,7 +12,26 @@
 
         <div class="rounded-2xl border border-gray-200/40 bg-white p-6 shadow-lg">
             <div class="mb-6 flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-gray-800">Quotation List</h3>
+                <div class="flex items-center gap-3">
+                    <h3 class="text-lg font-semibold text-gray-800">Quotation List</h3>
+                    <form method="GET" action="{{ route('quotations.index') }}" class="flex items-center gap-2">
+                        <input
+                            type="text"
+                            name="search"
+                            value="{{ $search ?? request('search') }}"
+                            placeholder="Search no/customer/marketing"
+                            class="w-72 rounded-xl border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                        <button type="submit" class="rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                            Search
+                        </button>
+                        @if (!empty($search))
+                            <a href="{{ route('quotations.index') }}" class="rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                Reset
+                            </a>
+                        @endif
+                    </form>
+                </div>
                 @can('quotations.create')
                     <button type="button" id="openCreateModal"
                             class="rounded-xl bg-indigo-600 px-4 py-2 text-sm text-white transition hover:bg-indigo-700">

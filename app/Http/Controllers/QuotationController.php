@@ -20,9 +20,25 @@ class QuotationController extends Controller
 
     public function index()
     {
+        $search = trim((string) request()->query('search', ''));
+
         $quotations = Quotation::with(['company', 'marketing'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('quotation_no', 'like', "%{$search}%")
+                        ->orWhereHas('company', function ($companyQuery) use ($search) {
+                            $companyQuery->where('company_name', 'like', "%{$search}%")
+                                ->orWhere('company_code', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('marketing', function ($marketingQuery) use ($search) {
+                            $marketingQuery->where('name', 'like', "%{$search}%")
+                                ->orWhere('marketing_no', 'like', "%{$search}%");
+                        });
+                });
+            })
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
         $companies = Company::orderBy('company_name')->get();
         $marketings = Marketing::orderBy('name')->get();
@@ -49,6 +65,7 @@ class QuotationController extends Controller
             'quotations' => $quotations,
             'customerOptions' => $customerOptions,
             'marketingOptions' => $marketingOptions,
+            'search' => $search,
             'openCreateModal' => request()->boolean('create'),
             'editing' => $editing,
             'returnTo' => request()->query('return_to'),

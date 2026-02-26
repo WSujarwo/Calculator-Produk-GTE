@@ -230,10 +230,20 @@ class GppCalculationController extends Controller
             ->where('col_c', $mesin)
             ->first();
 
+        // Excel sheet uses density tied to the selected product row.
+        // Prioritize density from master_data_bobbin_dan_ply (col_e), fallback to master_data_density.
+        if ($kodeRow && isset($kodeRow->col_e)) {
+            $densityText = str_replace(',', '.', (string) $kodeRow->col_e);
+            $densityFromKodeRow = (float) $densityText;
+            if ($densityFromKodeRow > 0) {
+                $density = $densityFromKodeRow;
+            }
+        }
+
         $kodeBarang = $kodeRow->col_d ?? '-';
 
-        // Updated sheet formula: kelebihan pengiriman mengikuti 20% dari input berat.
-        $kelebihanBerat = $berat * 0.20;
+        // Kelebihan pengiriman mengikuti input user pada form.
+        $kelebihanBerat = $kelebihan;
 
         $spareBerat = ($density > 0 && $sizeNum > 0)
             ? (((($sizeNum * $sizeNum) * $sparePanjang * $density) / 1000) + $kelebihanBerat)
@@ -354,7 +364,21 @@ class GppCalculationController extends Controller
             ];
         }
 
-        $biayaGulungPerDetik = (float) (DB::table('durasi_proses_biaya_gulung_gpp')->where('proses', 'Gulung')->value('biaya_per_detik') ?? 0);
+        $ratePerSecond = static function ($row, string $perSecondField = 'biaya_per_detik', string $perHourField = 'biaya_per_jam'): float {
+            if (! $row) {
+                return 0.0;
+            }
+            $perHour = (float) ($row->{$perHourField} ?? 0);
+            if ($perHour > 0) {
+                return $perHour / 3600;
+            }
+            return (float) ($row->{$perSecondField} ?? 0);
+        };
+
+        $gulungCostRow = DB::table('durasi_proses_biaya_gulung_gpp')
+            ->where('proses', 'Gulung')
+            ->first();
+        $biayaGulungPerDetik = $ratePerSecond($gulungCostRow);
         $ratePerDetikMp = (float) (DB::table('durasi_proses_rate_gpp')->value('rate_per_detik') ?? 0);
 
         $durasiGulungCalc = [
@@ -381,9 +405,10 @@ class GppCalculationController extends Controller
             $braidingDuration = ((float) $braidingRef->waktu_dtk) * ($panjangPlusSpare / max($panjangTurunanMesin, 0.000001));
         }
 
+        $biayaBraidingPerDetik = $ratePerSecond($braidingRef);
         $braidingCalc = [
             'total_durasi_dtk' => $braidingDuration,
-            'mesin_cost' => $braidingDuration * (float) ($braidingRef->biaya_per_detik ?? 0),
+            'mesin_cost' => $braidingDuration * $biayaBraidingPerDetik,
             'mp_cost' => $braidingDuration * $ratePerDetikMp,
         ];
         $braidingCalc['total_cost'] = $braidingCalc['mesin_cost'] + $braidingCalc['mp_cost'];
@@ -398,7 +423,7 @@ class GppCalculationController extends Controller
                 ? ($durasiBase * ($beratPlusSpare / 5))
                 : ($durasiBase * $panjangPlusSpare);
 
-            $mesinCost = $durasi * (float) ($row->biaya_per_detik ?? 0);
+            $mesinCost = $durasi * $ratePerSecond($row);
             $mpCost = $durasi * $ratePerDetikMp;
 
             $gpCosts[$proses] = [
