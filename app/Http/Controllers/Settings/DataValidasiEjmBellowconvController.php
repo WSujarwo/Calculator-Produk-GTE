@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
-use App\Models\DataValidasiEjmProses;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -12,21 +11,11 @@ use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use ZipArchive;
 
-class DataValidasiEjmProsesController extends Controller
+class DataValidasiEjmBellowconvController extends Controller
 {
-    private const ACTIVE_TAB = 'proses';
-
-    private const EXPORT_HEADERS = [
-        'component_type',
-        'process_name',
-        'nb',
-        'tube_inner',
-        'price_tube_inner',
-        'tube_outer',
-        'price_tube_outer',
-        'unit',
-        'notes',
-    ];
+    private const TABLE = 'validasi_dataejm_bellowconvs';
+    private const ACTIVE_TAB = 'bellowconv';
+    private const EXPORT_HEADERS = ['size', 'noc', 'naming', 'oalb_mm', 'bl_mm'];
 
     public function __construct()
     {
@@ -38,65 +27,60 @@ class DataValidasiEjmProsesController extends Controller
         $this->middleware('permission:settings.ejm-validation.export')->only(['templateCsv', 'templateExcel', 'exportCsv', 'exportExcel']);
     }
 
-    public function index(Request $request): View|\Illuminate\Http\JsonResponse
+    public function index(Request $request): View
     {
-        $query = DataValidasiEjmProses::query();
-
-        if ($request->filled('component_type')) {
-            $query->where('component_type', trim((string) $request->query('component_type')));
+        $query = DB::table(self::TABLE);
+        if ($request->filled('size') && is_numeric($request->query('size'))) {
+            $query->where('size', (int) $request->query('size'));
         }
-        if ($request->filled('process_name')) {
-            $query->where('process_name', trim((string) $request->query('process_name')));
+        if ($request->filled('noc') && is_numeric($request->query('noc'))) {
+            $query->where('noc', (int) $request->query('noc'));
         }
-        if ($request->filled('nb') && is_numeric($request->query('nb'))) {
-            $query->where('nb', (int) $request->query('nb'));
+        if ($request->filled('naming')) {
+            $query->where('naming', 'like', '%' . trim((string) $request->query('naming')) . '%');
         }
 
         $rows = $query
-            ->orderBy('component_type')
-            ->orderBy('process_name')
-            ->orderByRaw('COALESCE(nb, 0) asc')
+            ->orderByRaw('COALESCE(size, 0) asc')
+            ->orderByRaw('COALESCE(noc, 0) asc')
             ->paginate(100)
             ->withQueryString();
 
         $editing = null;
         if ($request->filled('edit')) {
-            $editing = DataValidasiEjmProses::find((int) $request->query('edit'));
+            $editing = DB::table(self::TABLE)->where('id', (int) $request->query('edit'))->first();
         }
 
-        $payload = [
+        return view('settings.ejm-validation-bellowconv', [
             'rows' => $rows,
-            'editing' => $editing?->toArray(),
+            'editing' => $editing ? (array) $editing : null,
             'openCreateModal' => $request->boolean('create'),
             'validationMenus' => [
                 ['key' => 'actual', 'label' => 'Actual Design Calculation', 'url' => route('setting.ejm-validation.index', ['tab' => 'actual'])],
                 ['key' => 'can-length', 'label' => 'Calculation of CAN Length', 'url' => route('setting.ejm-validation.index', ['tab' => 'can-length'])],
-                ['key' => self::ACTIVE_TAB, 'label' => 'Validasi Proses', 'url' => route('setting.ejm-validation-proses.index')],
-                ['key' => 'bellowconv', 'label' => 'Bellowconv', 'url' => route('setting.ejm-validation-bellowconv.index')],
+                ['key' => 'proses', 'label' => 'Validasi Proses', 'url' => route('setting.ejm-validation-proses.index')],
+                ['key' => self::ACTIVE_TAB, 'label' => 'Bellowconv', 'url' => route('setting.ejm-validation-bellowconv.index')],
                 ['key' => 'expansion-joint', 'label' => 'Expansion Joint', 'url' => route('setting.ejm-expansion-joint.index')],
             ],
             'activeTab' => self::ACTIVE_TAB,
-        ];
-
-        if (view()->exists('settings.ejm-validation-proses')) {
-            return view('settings.ejm-validation-proses', $payload);
-        }
-
-        return response()->json($payload);
+        ]);
     }
 
     public function create(): RedirectResponse
     {
-        return redirect()->route('setting.ejm-validation-proses.index', ['create' => 1]);
+        return redirect()->route('setting.ejm-validation-bellowconv.index', ['create' => 1]);
     }
 
     public function store(Request $request): RedirectResponse
     {
         $payload = $this->validatedPayload($request);
-        DataValidasiEjmProses::create($payload);
+        DB::table(self::TABLE)->insert(array_merge($payload, [
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]));
 
-        return redirect()->route('setting.ejm-validation-proses.index')
-            ->with('success', 'Data validasi proses berhasil ditambahkan.');
+        return redirect()->route('setting.ejm-validation-bellowconv.index')
+            ->with('success', 'Data validasi bellowconv berhasil ditambahkan.');
     }
 
     public function update(Request $request): RedirectResponse
@@ -104,12 +88,13 @@ class DataValidasiEjmProsesController extends Controller
         $id = (int) $request->input('id');
         abort_if($id <= 0, 422, 'ID data tidak valid.');
 
-        $record = DataValidasiEjmProses::findOrFail($id);
         $payload = $this->validatedPayload($request, $id);
-        $record->update($payload);
+        DB::table(self::TABLE)->where('id', $id)->update(array_merge($payload, [
+            'updated_at' => now(),
+        ]));
 
-        return redirect()->route('setting.ejm-validation-proses.index')
-            ->with('success', 'Data validasi proses berhasil diupdate.');
+        return redirect()->route('setting.ejm-validation-bellowconv.index')
+            ->with('success', 'Data validasi bellowconv berhasil diupdate.');
     }
 
     public function destroy(Request $request): RedirectResponse
@@ -117,11 +102,10 @@ class DataValidasiEjmProsesController extends Controller
         $id = (int) $request->input('id');
         abort_if($id <= 0, 422, 'ID data tidak valid.');
 
-        $record = DataValidasiEjmProses::findOrFail($id);
-        $record->delete();
+        DB::table(self::TABLE)->where('id', $id)->delete();
 
-        return redirect()->route('setting.ejm-validation-proses.index')
-            ->with('success', 'Data validasi proses berhasil dihapus.');
+        return redirect()->route('setting.ejm-validation-bellowconv.index')
+            ->with('success', 'Data validasi bellowconv berhasil dihapus.');
     }
 
     public function import(Request $request): RedirectResponse
@@ -132,13 +116,13 @@ class DataValidasiEjmProsesController extends Controller
 
         $ext = strtolower((string) $validated['file']->getClientOriginalExtension());
         if ($ext === 'xlsx' && ! class_exists(ZipArchive::class)) {
-            return redirect()->route('setting.ejm-validation-proses.index')
+            return redirect()->route('setting.ejm-validation-bellowconv.index')
                 ->with('error', 'Import XLSX membutuhkan ekstensi PHP zip (ZipArchive).');
         }
 
         $rows = $this->readRows($validated['file']);
         if (empty($rows)) {
-            return redirect()->route('setting.ejm-validation-proses.index')
+            return redirect()->route('setting.ejm-validation-bellowconv.index')
                 ->with('error', 'Tidak ada data valid pada file import.');
         }
 
@@ -148,143 +132,117 @@ class DataValidasiEjmProsesController extends Controller
 
         DB::transaction(function () use ($rows, &$created, &$updated, &$skipped) {
             foreach ($rows as $row) {
-                $componentType = $this->cleanString($row['component_type'] ?? null);
-                $processName = $this->cleanString($row['process_name'] ?? null);
-                if ($componentType === null || $processName === null) {
+                $size = $this->toInteger($row['size'] ?? null);
+                $noc = $this->toInteger($row['noc'] ?? null);
+                $naming = $this->cleanString($row['naming'] ?? null);
+                $oalbMm = $this->toDecimal($row['oalb_mm'] ?? null);
+                $blMm = $this->toDecimal($row['bl_mm'] ?? null);
+
+                if ($size === null || $noc === null || $naming === null || $oalbMm === null || $blMm === null) {
                     $skipped++;
                     continue;
                 }
 
-                $nb = $this->toInteger($row['nb'] ?? null);
                 $payload = [
-                    'component_type' => $componentType,
-                    'process_name' => $processName,
-                    'nb' => $nb,
-                    'tube_inner' => $this->toInteger($row['tube_inner'] ?? null),
-                    'price_tube_inner' => $this->toDecimal($row['price_tube_inner'] ?? null),
-                    'tube_outer' => $this->toInteger($row['tube_outer'] ?? null),
-                    'price_tube_outer' => $this->toDecimal($row['price_tube_outer'] ?? null),
-                    'unit' => $this->cleanString($row['unit'] ?? null),
-                    'notes' => $this->cleanString($row['notes'] ?? null),
+                    'size' => $size,
+                    'noc' => $noc,
+                    'naming' => $naming,
+                    'oalb_mm' => $oalbMm,
+                    'bl_mm' => $blMm,
+                    'updated_at' => now(),
                 ];
 
-                $existingQuery = DataValidasiEjmProses::query()
-                    ->where('component_type', $componentType)
-                    ->where('process_name', $processName);
+                $existing = DB::table(self::TABLE)
+                    ->where('size', $size)
+                    ->where('noc', $noc)
+                    ->first();
 
-                if ($nb === null) {
-                    $existingQuery->whereNull('nb');
-                } else {
-                    $existingQuery->where('nb', $nb);
-                }
-
-                $existing = $existingQuery->first();
                 if ($existing) {
-                    $existing->update($payload);
+                    DB::table(self::TABLE)->where('id', $existing->id)->update($payload);
                     $updated++;
                     continue;
                 }
 
-                DataValidasiEjmProses::create($payload);
+                DB::table(self::TABLE)->insert(array_merge($payload, [
+                    'created_at' => now(),
+                ]));
                 $created++;
             }
         });
 
-        return redirect()->route('setting.ejm-validation-proses.index')
+        return redirect()->route('setting.ejm-validation-bellowconv.index')
             ->with('success', "Import selesai. Created: {$created}, Updated: {$updated}, Skipped: {$skipped}.");
     }
 
     public function templateCsv()
     {
-        return $this->buildCsvResponse(
-            $this->sampleRows(),
-            'ejm_validasi_proses_template.csv'
-        );
+        return $this->buildCsvResponse($this->sampleRows(), 'ejm_validasi_bellowconv_template.csv');
     }
 
     public function exportCsv(Request $request)
     {
-        $rows = $this->exportRows($request);
-        return $this->buildCsvResponse($rows, 'ejm_validasi_proses_export.csv');
+        return $this->buildCsvResponse($this->exportRows($request), 'ejm_validasi_bellowconv_export.csv');
     }
 
     public function templateExcel()
     {
-        $html = $this->buildExcelHtml($this->sampleRows(), 'Template Validasi Proses EJM');
+        $html = $this->buildExcelHtml($this->sampleRows(), 'Template Validasi Bellowconv EJM');
         return response($html, 200, [
             'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename=ejm_validasi_proses_template.xls',
+            'Content-Disposition' => 'attachment; filename=ejm_validasi_bellowconv_template.xls',
         ]);
     }
 
     public function exportExcel(Request $request)
     {
-        $html = $this->buildExcelHtml($this->exportRows($request), 'Export Validasi Proses EJM');
+        $html = $this->buildExcelHtml($this->exportRows($request), 'Export Validasi Bellowconv EJM');
         return response($html, 200, [
             'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename=ejm_validasi_proses_export.xls',
+            'Content-Disposition' => 'attachment; filename=ejm_validasi_bellowconv_export.xls',
         ]);
     }
 
     private function validatedPayload(Request $request, ?int $ignoreId = null): array
     {
-        $nbInput = $request->input('nb');
-        $processUnique = Rule::unique('data_validasiejm_proses', 'process_name')
-            ->where(function ($query) use ($request, $nbInput) {
-                $query->where('component_type', trim((string) $request->input('component_type')));
-                if ($nbInput === null || $nbInput === '') {
-                    $query->whereNull('nb');
-                } else {
-                    $query->where('nb', (int) $nbInput);
-                }
-            });
-
+        $nocUnique = Rule::unique(self::TABLE, 'noc')
+            ->where(fn ($query) => $query->where('size', (int) $request->input('size')));
         if ($ignoreId !== null) {
-            $processUnique = $processUnique->ignore($ignoreId);
+            $nocUnique = $nocUnique->ignore($ignoreId);
         }
 
         $data = $request->validate([
-            'component_type' => ['required', 'string', 'max:80'],
-            'process_name' => ['required', 'string', 'max:120', $processUnique],
-            'nb' => ['nullable', 'integer', 'min:0'],
-            'tube_inner' => ['nullable', 'integer', 'min:0'],
-            'price_tube_inner' => ['nullable', 'numeric'],
-            'tube_outer' => ['nullable', 'integer', 'min:0'],
-            'price_tube_outer' => ['nullable', 'numeric'],
-            'unit' => ['nullable', 'string', 'max:20'],
-            'notes' => ['nullable', 'string'],
+            'size' => ['required', 'integer', 'min:1'],
+            'noc' => ['required', 'integer', 'min:1', $nocUnique],
+            'naming' => ['required', 'string', 'max:50'],
+            'oalb_mm' => ['required', 'numeric'],
+            'bl_mm' => ['required', 'numeric'],
         ]);
 
         return [
-            'component_type' => trim($data['component_type']),
-            'process_name' => trim($data['process_name']),
-            'nb' => $this->toInteger($data['nb'] ?? null),
-            'tube_inner' => $this->toInteger($data['tube_inner'] ?? null),
-            'price_tube_inner' => $this->toDecimal($data['price_tube_inner'] ?? null),
-            'tube_outer' => $this->toInteger($data['tube_outer'] ?? null),
-            'price_tube_outer' => $this->toDecimal($data['price_tube_outer'] ?? null),
-            'unit' => $this->cleanString($data['unit'] ?? null),
-            'notes' => $this->cleanString($data['notes'] ?? null),
+            'size' => (int) $data['size'],
+            'noc' => (int) $data['noc'],
+            'naming' => trim($data['naming']),
+            'oalb_mm' => $this->toDecimal($data['oalb_mm']),
+            'bl_mm' => $this->toDecimal($data['bl_mm']),
         ];
     }
 
     private function exportRows(Request $request): array
     {
-        $query = DataValidasiEjmProses::query();
-        if ($request->filled('component_type')) {
-            $query->where('component_type', trim((string) $request->query('component_type')));
+        $query = DB::table(self::TABLE);
+        if ($request->filled('size') && is_numeric($request->query('size'))) {
+            $query->where('size', (int) $request->query('size'));
         }
-        if ($request->filled('process_name')) {
-            $query->where('process_name', trim((string) $request->query('process_name')));
+        if ($request->filled('noc') && is_numeric($request->query('noc'))) {
+            $query->where('noc', (int) $request->query('noc'));
         }
-        if ($request->filled('nb') && is_numeric($request->query('nb'))) {
-            $query->where('nb', (int) $request->query('nb'));
+        if ($request->filled('naming')) {
+            $query->where('naming', 'like', '%' . trim((string) $request->query('naming')) . '%');
         }
 
         return $query
-            ->orderBy('component_type')
-            ->orderBy('process_name')
-            ->orderByRaw('COALESCE(nb, 0) asc')
+            ->orderByRaw('COALESCE(size, 0) asc')
+            ->orderByRaw('COALESCE(noc, 0) asc')
             ->get(self::EXPORT_HEADERS)
             ->map(fn ($row) => (array) $row)
             ->all();
@@ -313,11 +271,11 @@ class DataValidasiEjmProsesController extends Controller
 
     private function buildExcelHtml(array $rows, string $title): string
     {
-        $thead1 = '<tr style="background:#d9ead3;font-weight:700;">';
+        $thead = '<tr style="background:#d9ead3;font-weight:700;">';
         foreach (self::EXPORT_HEADERS as $header) {
-            $thead1 .= '<th>' . e(strtoupper($header)) . '</th>';
+            $thead .= '<th>' . e(strtoupper($header)) . '</th>';
         }
-        $thead1 .= '</tr>';
+        $thead .= '</tr>';
 
         $tbody = '';
         foreach ($rows as $row) {
@@ -328,34 +286,14 @@ class DataValidasiEjmProsesController extends Controller
             $tbody .= '</tr>';
         }
 
-        return '<html><head><meta charset="utf-8"><style>table{border-collapse:collapse;font-family:Arial,sans-serif;font-size:12px;}th,td{border:1px solid #777;padding:4px 6px;text-align:center;}</style></head><body><h3>' . e($title) . '</h3><table><thead>' . $thead1 . '</thead><tbody>' . $tbody . '</tbody></table></body></html>';
+        return '<html><head><meta charset="utf-8"><style>table{border-collapse:collapse;font-family:Arial,sans-serif;font-size:12px;}th,td{border:1px solid #777;padding:4px 6px;text-align:center;}</style></head><body><h3>' . e($title) . '</h3><table><thead>' . $thead . '</thead><tbody>' . $tbody . '</tbody></table></body></html>';
     }
 
     private function sampleRows(): array
     {
         return [
-            [
-                'component_type' => 'Bellows',
-                'process_name' => 'Cutting Shearing',
-                'nb' => 100,
-                'tube_inner' => 30,
-                'price_tube_inner' => 15000.00,
-                'tube_outer' => 30,
-                'price_tube_outer' => 15500.00,
-                'unit' => 'menit',
-                'notes' => null,
-            ],
-            [
-                'component_type' => 'EJM PRODUCTION',
-                'process_name' => 'Assembly',
-                'nb' => 250,
-                'tube_inner' => 2,
-                'price_tube_inner' => 25000.00,
-                'tube_outer' => 2,
-                'price_tube_outer' => 27000.00,
-                'unit' => 'satuan',
-                'notes' => 'Khusus EJM production biasanya satuan',
-            ],
+            ['size' => 100, 'noc' => 14, 'naming' => 'Single Ply', 'oalb_mm' => 220.00, 'bl_mm' => 170.00],
+            ['size' => 150, 'noc' => 18, 'naming' => 'Multi Ply', 'oalb_mm' => 280.00, 'bl_mm' => 230.00],
         ];
     }
 
@@ -374,22 +312,18 @@ class DataValidasiEjmProsesController extends Controller
 
         $headers = array_map(fn ($v) => $this->normalizeHeader($v), $rawRows[0]);
         $indices = $this->resolveColumnMap($headers);
-        if ($indices['component_type'] === null || $indices['process_name'] === null) {
+        if ($indices['size'] === null || $indices['noc'] === null) {
             return [];
         }
 
         $rows = [];
         foreach (array_slice($rawRows, 1) as $row) {
             $rows[] = [
-                'component_type' => $this->readCellByIndex($row, $indices['component_type']),
-                'process_name' => $this->readCellByIndex($row, $indices['process_name']),
-                'nb' => $this->readCellByIndex($row, $indices['nb']),
-                'tube_inner' => $this->readCellByIndex($row, $indices['tube_inner']),
-                'price_tube_inner' => $this->readCellByIndex($row, $indices['price_tube_inner']),
-                'tube_outer' => $this->readCellByIndex($row, $indices['tube_outer']),
-                'price_tube_outer' => $this->readCellByIndex($row, $indices['price_tube_outer']),
-                'unit' => $this->readCellByIndex($row, $indices['unit']),
-                'notes' => $this->readCellByIndex($row, $indices['notes']),
+                'size' => $this->readCellByIndex($row, $indices['size']),
+                'noc' => $this->readCellByIndex($row, $indices['noc']),
+                'naming' => $this->readCellByIndex($row, $indices['naming']),
+                'oalb_mm' => $this->readCellByIndex($row, $indices['oalb_mm']),
+                'bl_mm' => $this->readCellByIndex($row, $indices['bl_mm']),
             ];
         }
 
@@ -399,15 +333,11 @@ class DataValidasiEjmProsesController extends Controller
     private function resolveColumnMap(array $headers): array
     {
         $aliases = [
-            'component_type' => ['componenttype', 'component', 'table'],
-            'process_name' => ['processname', 'process', 'proses'],
-            'nb' => ['nb'],
-            'tube_inner' => ['tubeinner'],
-            'price_tube_inner' => ['pricetubeinner', 'hargatubeinner', 'harga1', 'price1'],
-            'tube_outer' => ['tubeouter'],
-            'price_tube_outer' => ['pricetubeouter', 'hargatubeouter', 'harga2', 'price2'],
-            'unit' => ['unit', 'satuan'],
-            'notes' => ['notes', 'keterangan'],
+            'size' => ['size', 'nb'],
+            'noc' => ['noc', 'numberofconvolution'],
+            'naming' => ['naming', 'name'],
+            'oalb_mm' => ['oalbmm', 'oalb'],
+            'bl_mm' => ['blmm', 'bl'],
         ];
 
         $map = array_fill_keys(array_keys($aliases), null);
@@ -430,7 +360,6 @@ class DataValidasiEjmProsesController extends Controller
         $rows = [];
         $file = new \SplFileObject($path);
         $file->setFlags(\SplFileObject::READ_CSV | \SplFileObject::SKIP_EMPTY);
-
         foreach ($file as $row) {
             if (! is_array($row)) {
                 continue;
@@ -440,7 +369,6 @@ class DataValidasiEjmProsesController extends Controller
             }
             $rows[] = array_map(fn ($cell) => is_string($cell) ? trim($cell) : $cell, $row);
         }
-
         return $rows;
     }
 
@@ -502,7 +430,6 @@ class DataValidasiEjmProsesController extends Controller
             if (empty($cells)) {
                 continue;
             }
-
             ksort($cells);
             $max = (int) array_key_last($cells);
             $filled = [];
