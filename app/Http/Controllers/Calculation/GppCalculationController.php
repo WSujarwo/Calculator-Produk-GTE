@@ -153,12 +153,39 @@ class GppCalculationController extends Controller
                 ->first();
         }
 
+        $companyOptions = DB::table('companies')
+            ->select('id', 'company_code', 'company_name', 'address')
+            ->orderBy('company_name')
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'id' => (int) $row->id,
+                    'label' => trim(($row->company_code ?? '') . ' - ' . ($row->company_name ?? '')),
+                    'address' => $row->address ?? '',
+                ];
+            })
+            ->values();
+
+        $marketingOptions = DB::table('marketings')
+            ->select('id', 'marketing_no', 'name')
+            ->orderBy('name')
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'id' => (int) $row->id,
+                    'label' => trim(($row->marketing_no ?? '') . ' - ' . ($row->name ?? '')),
+                ];
+            })
+            ->values();
+
         return [
             'types' => $types,
             'mesins' => $mesins,
             'sizes' => $sizes,
             'mesinSizeMap' => $mesinSizeMap,
             'selectedQuotation' => $selectedQuotation,
+            'companyOptions' => $companyOptions,
+            'marketingOptions' => $marketingOptions,
             'defaultType' => null,
             'defaultMesin' => null,
             'defaultSize' => null,

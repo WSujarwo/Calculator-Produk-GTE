@@ -66,6 +66,7 @@ class QuotationController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'quotation_suffix' => ['required', 'string', 'regex:/^[A-Za-z0-9]{6}$/'],
             'quotation_date' => 'required|date',
             'company_id' => 'required|exists:companies,id',
             'marketing_id' => 'required|exists:marketings,id',
@@ -81,11 +82,13 @@ class QuotationController extends Controller
             'result_status' => 'required|in:GAGAL,PENDING,SUKSES',
             'return_to' => 'nullable|in:gpp',
         ]);
-
-        // Auto generate quotation number
-        $last = Quotation::latest()->first();
-        $number = $last ? intval(substr($last->quotation_no, -4)) + 1 : 1;
-        $quotationNo = 'QUO-' . date('Y') . '-' . str_pad($number, 4, '0', STR_PAD_LEFT);
+        $quotationSuffix = strtoupper((string) $validated['quotation_suffix']);
+        $quotationNo = 'GTE-QTN-' . $quotationSuffix;
+        if (Quotation::where('quotation_no', $quotationNo)->exists()) {
+            return redirect()->back()
+                ->withErrors(['quotation_suffix' => 'Quotation No sudah digunakan.'])
+                ->withInput();
+        }
 
         $company = Company::find($validated['company_id']);
 

@@ -111,7 +111,13 @@
                 <div class="grid gap-5 md:grid-cols-2">
                     <div>
                         <label class="block text-sm font-medium text-slate-700">Quotation No</label>
-                        <input type="text" value="Auto Generate" class="mt-2 w-full rounded-xl border-slate-300 bg-slate-100 text-sm text-slate-500" disabled>
+                        <div class="mt-2 grid grid-cols-[170px,1fr] gap-2">
+                            <input type="text" value="GTE-QTN-" class="w-full rounded-xl border-slate-300 bg-slate-100 text-sm text-slate-500" disabled>
+                            <input type="text" name="quotation_suffix" value="{{ old('quotation_suffix') }}" maxlength="6" placeholder="XXXXXX" class="w-full rounded-xl border-slate-300 text-sm uppercase focus:border-indigo-500 focus:ring-indigo-500" required>
+                        </div>
+                        @error('quotation_suffix')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-700">Result Status</label>
