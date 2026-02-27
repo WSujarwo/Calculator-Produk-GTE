@@ -105,11 +105,56 @@
                 GPP
             </a>
         </li>
-        <li>
-            <a href="{{ route('extractor.ejm') }}"
-               class="{{ request()->routeIs('extractor.ejm') ? 'active' : '' }}">
-                EJM
+        <li class="has-submenu {{ request()->routeIs('extractor.ejm') || request()->routeIs('detailTube') || request()->routeIs('detailBellow') || request()->routeIs('detailCollar') || request()->routeIs('detailPipeEnd') || request()->routeIs('detailFlange') || request()->routeIs('detailEJM') ? 'open' : '' }}">
+            <a href="#"
+               class="submenu-toggle {{ request()->routeIs('extractor.ejm') || request()->routeIs('detailTube') || request()->routeIs('detailBellow') || request()->routeIs('detailCollar') || request()->routeIs('detailPipeEnd') || request()->routeIs('detailFlange') || request()->routeIs('detailEJM') ? 'active' : '' }}">
+                <span>EJM</span>
+                <span class="submenu-arrow material-symbols-rounded">expand_more</span>
             </a>
+            <ul class="submenu">
+                <li>
+                    <a href="#"
+                        class="{{ request()->routeIs('detailTube') ? 'active' : '' }}">
+                        Detail Tube 
+                    </a>
+                </li>
+                <li>
+                    <a href="#"
+                        class="{{ request()->routeIs('detailbellows') ? 'active' : '' }}">
+                        Detail Bellows 
+                    </a>
+                </li>
+                <li>
+                    <a href="#"
+                        class="{{ request()->routeIs('detailCollar') ? 'active' : '' }}">
+                        Detail Collar 
+                    </a>
+                </li>
+                <li>
+                    <a href="#"
+                        class="{{ request()->routeIs('detailMetalBellows') ? 'active' : '' }}">
+                        Detail Metal Bellows  
+                    </a>
+                </li>
+                <li>
+                    <a href="#"
+                        class="{{ request()->routeIs('detailPipeEnd') ? 'active' : '' }}">
+                        Detail Pipe End  
+                    </a>
+                </li>
+                <li>
+                    <a href="#"
+                        class="{{ request()->routeIs('detailFlange') ? 'active' : '' }}">
+                        Detail Flange 
+                    </a>
+                </li>
+                <li>
+                    <a href="#"
+                        class="{{ request()->routeIs('detailEJM') ? 'active' : '' }}">
+                        Detail EJM 
+                    </a>
+                </li>
+            </ul>
         </li>
     </ul>
 
