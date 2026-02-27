@@ -16,11 +16,14 @@ use App\Http\Controllers\Settings\CustomerController;
 use App\Http\Controllers\Settings\DataValidasiEjmBellowconvController;
 use App\Http\Controllers\Settings\DataValidasiEjmProsesController;
 use App\Http\Controllers\Settings\EjmExpansionJointController;
+use App\Http\Controllers\Settings\DataValidasiEjmMaterialController;
 use App\Http\Controllers\Settings\EjmValidationController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\Calculation\GppCalculationController;
+use App\Http\Controllers\Calculation\EjmCalculationController;
+use App\Http\Controllers\Calculation\PceController;
 
 
 Route::get('/', function () {
@@ -42,9 +45,7 @@ Route::get('/calculation/rti', function () {
 Route::get('/calculation/gpp', [GppCalculationController::class, 'index'])->name('calculation.gpp');
 Route::post('/calculation/gpp/validate', [GppCalculationController::class, 'validateInput'])->name('calculation.gpp.validate');
 
-Route::get('/calculation/ejm', function () {
-    return view('calculation.ejm');
-})->name('calculation.ejm');
+Route::get('/calculation/ejm', [EjmCalculationController::class, 'index'])->name('calculation.ejm');
 
 Route::get('/extractor/rti', function () {
     return view('extractor.rti');
@@ -107,6 +108,10 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::post('/setting/ejm-expansion-joint/store', [EjmExpansionJointController::class, 'store'])->name('setting.ejm-expansion-joint.store');
     Route::post('/setting/ejm-expansion-joint/update', [EjmExpansionJointController::class, 'update'])->name('setting.ejm-expansion-joint.update');
     Route::post('/setting/ejm-expansion-joint/import', [EjmExpansionJointController::class, 'import'])->name('setting.ejm-expansion-joint.import');
+    Route::get('/setting/ejm-validation-material', [DataValidasiEjmMaterialController::class, 'index'])->name('setting.ejm-validation-material.index');
+    Route::post('/setting/ejm-validation-material/import', [DataValidasiEjmMaterialController::class, 'import'])->name('setting.ejm-validation-material.import');
+    Route::get('/setting/ejm-validation-material/template/csv', [DataValidasiEjmMaterialController::class, 'templateCsv'])->name('setting.ejm-validation-material.template.csv');
+    Route::get('/setting/ejm-validation-material/template/excel', [DataValidasiEjmMaterialController::class, 'templateExcel'])->name('setting.ejm-validation-material.template.excel');
 
     Route::get('/setting/role-access', [RolePermissionController::class, 'index'])->name('setting.role-access');
     Route::put('/setting/role-access/roles/{role}', [RolePermissionController::class, 'updateRolePermissions'])->name('setting.role-access.roles.update');
@@ -117,6 +122,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/quotations/inline-companies', [QuotationController::class, 'storeInlineCompany'])->name('quotations.inline-companies.store');
     Route::post('/quotations/inline-marketings', [QuotationController::class, 'storeInlineMarketing'])->name('quotations.inline-marketings.store');
     Route::resource('quotations', QuotationController::class);
+
+    Route::prefix('calculation/ejm/pce')->name('calculation.ejm.pce.')->group(function () {
+        Route::get('/', [PceController::class, 'index'])->name('index');
+        Route::post('/headers', [PceController::class, 'storeHeader'])->name('headers.store');
+        Route::put('/headers/{pceHeader}', [PceController::class, 'updateHeader'])->name('headers.update');
+        Route::post('/headers/{pceHeader}/items', [PceController::class, 'storeItem'])->name('items.store');
+        Route::put('/headers/{pceHeader}/items/{pceItem}', [PceController::class, 'updateItem'])->name('items.update');
+        Route::get('/lookup/validation', [PceController::class, 'lookupValidation'])->name('lookup.validation');
+    });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
