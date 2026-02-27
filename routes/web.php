@@ -24,6 +24,7 @@ use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\Calculation\GppCalculationController;
 use App\Http\Controllers\Calculation\EjmCalculationController;
 use App\Http\Controllers\PceHeaderController;
+use App\Http\Controllers\PceItemController;
 
 
 Route::get('/', function () {
@@ -63,9 +64,8 @@ Route::get('/quotation', function () {
     return view('quotation');
 })->middleware(['auth', 'verified'])->name('quotation');
 
-Route::get('/orderlist', function () {
-    return view('orderlist');
-})->middleware(['auth', 'verified'])->name('orderlist');
+Route::get('/orderlist', fn () => redirect()->route('pce-orderlist.index'))->middleware(['auth', 'verified'])->name('orderlist');
+Route::get('/pce-orderlist', [PceItemController::class, 'index'])->middleware(['auth', 'verified'])->name('pce-orderlist.index');
 
 Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::get('/setting', [SettingController::class, 'index'])->name('setting');
@@ -109,6 +109,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::post('/setting/ejm-expansion-joint/update', [EjmExpansionJointController::class, 'update'])->name('setting.ejm-expansion-joint.update');
     Route::post('/setting/ejm-expansion-joint/import', [EjmExpansionJointController::class, 'import'])->name('setting.ejm-expansion-joint.import');
     Route::get('/setting/ejm-validation-material', [DataValidasiEjmMaterialController::class, 'index'])->name('setting.ejm-validation-material.index');
+    Route::put('/settings/ejm-validation/material/{id}', [DataValidasiEjmMaterialController::class, 'update'])->name('setting.ejm-validation-material.update');
+    Route::delete('/settings/ejm-validation/material/{id}', [DataValidasiEjmMaterialController::class, 'destroy'])->name('setting.ejm-validation-material.destroy');
     Route::post('/setting/ejm-validation-material/import', [DataValidasiEjmMaterialController::class, 'import'])->name('setting.ejm-validation-material.import');
     Route::get('/setting/ejm-validation-material/template/csv', [DataValidasiEjmMaterialController::class, 'templateCsv'])->name('setting.ejm-validation-material.template.csv');
     Route::get('/setting/ejm-validation-material/template/excel', [DataValidasiEjmMaterialController::class, 'templateExcel'])->name('setting.ejm-validation-material.template.excel');
@@ -129,6 +131,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/pce-headers/{pceHeader}/edit', [PceHeaderController::class, 'edit'])->name('pce-headers.edit');
     Route::put('/pce-headers/{pceHeader}', [PceHeaderController::class, 'update'])->name('pce-headers.update');
     Route::delete('/pce-headers/{pceHeader}', [PceHeaderController::class, 'destroy'])->name('pce-headers.destroy');
+    Route::get('/pce-orderlist/create', [PceItemController::class, 'create'])->name('pce-orderlist.create');
+    Route::post('/pce-orderlist', [PceItemController::class, 'store'])->name('pce-orderlist.store');
+    Route::get('/pce-orderlist/{item}', [PceItemController::class, 'show'])->name('pce-orderlist.show');
+    Route::get('/pce-orderlist/{item}/edit', [PceItemController::class, 'edit'])->name('pce-orderlist.edit');
+    Route::put('/pce-orderlist/{item}', [PceItemController::class, 'update'])->name('pce-orderlist.update');
+    Route::delete('/pce-orderlist/{item}', [PceItemController::class, 'destroy'])->name('pce-orderlist.destroy');
 
 
 

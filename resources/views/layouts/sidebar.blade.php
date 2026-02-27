@@ -57,9 +57,9 @@
                 GPP
             </a>
         </li>
-        <li class="has-submenu {{ request()->routeIs('calculation.ejm') || request()->routeIs('pcelist') || request()->routeIs('orderlist') ? 'open' : '' }}">
+        <li class="has-submenu {{ request()->routeIs('calculation.ejm') || request()->routeIs('pcelist') || request()->routeIs('pce-orderlist*') ? 'open' : '' }}">
             <a href="#"
-               class="submenu-toggle {{ request()->routeIs('calculation.ejm') || request()->routeIs('pcelist') || request()->routeIs('orderlist') ? 'active' : '' }}">
+               class="submenu-toggle {{ request()->routeIs('calculation.ejm') || request()->routeIs('pcelist') || request()->routeIs('pce-orderlist*') ? 'active' : '' }}">
                 <span>EJM</span>
                 <span class="submenu-arrow material-symbols-rounded">expand_more</span>
             </a>
@@ -71,8 +71,8 @@
                         </a>
                     </li>
                 <li>
-                    <a href="{{ route('orderlist') }}"
-                       class="{{ request()->routeIs('orderlist') ? 'active' : '' }}">
+                    <a href="{{ route('pce-orderlist.index') }}"
+                       class="{{ request()->routeIs('pce-orderlist*') ? 'active' : '' }}">
                         List Order
                     </a>
                 </li>
@@ -340,9 +340,9 @@
                 GPP
             </a>
         </li>
-        <li class="has-submenu {{ request()->routeIs('calculation.ejm') || request()->routeIs('pcelist') || request()->routeIs('orderlist') ? 'open' : '' }}">
+        <li class="has-submenu {{ request()->routeIs('calculation.ejm') || request()->routeIs('pcelist') || request()->routeIs('pce-orderlist*') ? 'open' : '' }}">
             <a href="#"
-               class="submenu-toggle {{ request()->routeIs('calculation.ejm') || request()->routeIs('pcelist') || request()->routeIs('orderlist') ? 'active' : '' }}">
+               class="submenu-toggle {{ request()->routeIs('calculation.ejm') || request()->routeIs('pcelist') || request()->routeIs('pce-orderlist*') ? 'active' : '' }}">
                 <span>EJM</span>
                 <span class="submenu-arrow material-symbols-rounded">expand_more</span>
             </a>
@@ -354,8 +354,8 @@
                         </a>
                     </li>
                 <li>
-                    <a href="{{ route('orderlist') }}"
-                       class="{{ request()->routeIs('orderlist') ? 'active' : '' }}">
+                    <a href="{{ route('pce-orderlist.index') }}"
+                       class="{{ request()->routeIs('pce-orderlist*') ? 'active' : '' }}">
                         List Order
                     </a>
                 </li>

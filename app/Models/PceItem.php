@@ -11,13 +11,14 @@ class PceItem extends Model
 
     protected $fillable = [
         'pce_header_id',
-        'line_no',
-        'quantity',
+        'plat_number',
+        'description',
+        'qty',
         'shape_id',
         'type_config_id',
-        'size_nb',
+        'nb',
         'noc',
-        'validation_id',
+        'expansion_joint_validation_id',
         'id_mm',
         'od_mm',
         'thk_mm',
@@ -30,17 +31,16 @@ class PceItem extends Model
 
     protected $casts = [
         'pce_header_id' => 'integer',
-        'line_no' => 'integer',
-        'quantity' => 'integer',
+        'qty' => 'integer',
         'shape_id' => 'integer',
         'type_config_id' => 'integer',
-        'size_nb' => 'integer',
+        'nb' => 'integer',
         'noc' => 'integer',
-        'validation_id' => 'integer',
+        'expansion_joint_validation_id' => 'integer',
         'id_mm' => 'decimal:3',
         'od_mm' => 'decimal:3',
         'thk_mm' => 'decimal:3',
-        'ply' => 'decimal:2',
+        'ply' => 'integer',
         'material_bellow_id' => 'integer',
         'material_flange_id' => 'integer',
         'material_pipe_end_id' => 'integer',
@@ -63,21 +63,21 @@ class PceItem extends Model
 
     public function validation(): BelongsTo
     {
-        return $this->belongsTo(DataValidasiEjmExpansionJoint::class, 'validation_id');
+        return $this->belongsTo(DataValidasiEjmExpansionJoint::class, 'expansion_joint_validation_id');
     }
 
     public function materialBellow(): BelongsTo
     {
-        return $this->belongsTo(Material::class, 'material_bellow_id');
+        return $this->belongsTo(DataValidasiEjmMaterial::class, 'material_bellow_id');
     }
 
     public function materialFlange(): BelongsTo
     {
-        return $this->belongsTo(Material::class, 'material_flange_id');
+        return $this->belongsTo(DataValidasiEjmMaterial::class, 'material_flange_id');
     }
 
     public function materialPipeEnd(): BelongsTo
     {
-        return $this->belongsTo(Material::class, 'material_pipe_end_id');
+        return $this->belongsTo(DataValidasiEjmMaterial::class, 'material_pipe_end_id');
     }
 }
