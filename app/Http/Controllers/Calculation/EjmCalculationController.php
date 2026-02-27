@@ -111,25 +111,33 @@ class EjmCalculationController extends Controller
 
         $materialRows = DataValidasiEjmMaterial::query()
             ->where('is_active', true)
-            ->whereNotNull('material_id')
-            ->orderBy('material_role')
-            ->orderBy('material_name')
+            ->whereNotNull('part_number')
+            ->leftJoin('materials', 'materials.part_number', '=', 'ejm_special_materials.part_number')
+            ->orderBy('component')
+            ->orderBy('material')
             ->get([
-                'id',
-                'material_role',
-                'material_name',
-                'material_id',
-                'part_number',
-                'naming',
-                'thk_mm',
-                'jumlah_ply',
-                'size_in',
-                'sch',
-                'type',
-                'price_sqm',
-                'price_kg',
-                'price_gram',
-            ]);
+                'ejm_special_materials.id',
+                DB::raw("CASE
+                    WHEN UPPER(ejm_special_materials.component) = 'BELLOW' THEN 'BELLOW'
+                    WHEN UPPER(ejm_special_materials.component) IN ('PIPE - NIPPLE','PIPE NIPPLE','PIPE-NIPPLE','PIPE_NIPPLE') THEN 'PIPE_NIPPLE'
+                    WHEN UPPER(ejm_special_materials.component) = 'FLANGE' THEN 'FLANGE'
+                    ELSE UPPER(ejm_special_materials.component)
+                END AS material_role"),
+                DB::raw('ejm_special_materials.material AS material_name'),
+                DB::raw('materials.id AS material_id'),
+                'ejm_special_materials.part_number',
+                'ejm_special_materials.naming',
+                'ejm_special_materials.thk_mm',
+                DB::raw('ejm_special_materials.ply AS jumlah_ply'),
+                'ejm_special_materials.size_in',
+                'ejm_special_materials.sch',
+                'ejm_special_materials.type',
+                'ejm_special_materials.price_sqm',
+                'ejm_special_materials.price_kg',
+                'ejm_special_materials.price_gram',
+            ])
+            ->filter(fn ($row) => $row->material_id !== null)
+            ->values();
 
         $bellowMaterials = $materialRows->where('material_role', 'BELLOW')->values();
         $pipeNippleMaterials = $materialRows->where('material_role', 'PIPE_NIPPLE')->values();

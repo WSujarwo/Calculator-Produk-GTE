@@ -38,11 +38,11 @@
                 <div class="border-b border-slate-200 px-4 py-3">
                     <form method="GET" action="{{ route('setting.ejm-validation-material.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-3">
                         <label class="text-xs text-slate-600">
-                            <span class="font-semibold">Role</span>
-                            <select name="material_role" class="mt-1 w-full rounded-lg border-slate-300 text-sm">
+                            <span class="font-semibold">Component</span>
+                            <select name="component" class="mt-1 w-full rounded-lg border-slate-300 text-sm">
                                 <option value="">-- All --</option>
-                                @foreach (['BELLOW', 'PIPE_NIPPLE', 'FLANGE', 'COLLAR'] as $role)
-                                    <option value="{{ $role }}" @selected(request('material_role') === $role)>{{ $role }}</option>
+                                @foreach (['Bellow', 'Pipe - Nipple', 'Flange', 'Collar'] as $component)
+                                    <option value="{{ $component }}" @selected(request('component') === $component)>{{ $component }}</option>
                                 @endforeach
                             </select>
                         </label>
@@ -73,35 +73,53 @@
                     <table class="min-w-[1100px] text-sm border-collapse">
                         <thead class="sticky top-0 z-10">
                             <tr class="bg-emerald-100 text-slate-900">
-                                <th class="px-3 py-2 border border-slate-300">Role</th>
+                                <th class="px-3 py-2 border border-slate-300">Component</th>
                                 <th class="px-3 py-2 border border-slate-300">Material</th>
                                 <th class="px-3 py-2 border border-slate-300">Thk</th>
                                 <th class="px-3 py-2 border border-slate-300">Ply</th>
                                 <th class="px-3 py-2 border border-slate-300">Size</th>
+                                <th class="px-3 py-2 border border-slate-300">Sch</th>
                                 <th class="px-3 py-2 border border-slate-300">Type</th>
                                 <th class="px-3 py-2 border border-slate-300">Part Number</th>
                                 <th class="px-3 py-2 border border-slate-300">Naming</th>
+                                <th class="px-3 py-2 border border-slate-300">Code1</th>
+                                <th class="px-3 py-2 border border-slate-300">Code2</th>
+                                <th class="px-3 py-2 border border-slate-300">Code3</th>
+                                <th class="px-3 py-2 border border-slate-300">Quality</th>
                                 <th class="px-3 py-2 border border-slate-300">Price SQM</th>
                                 <th class="px-3 py-2 border border-slate-300">Price KG</th>
+                                <th class="px-3 py-2 border border-slate-300">Price Gram</th>
+                                <th class="px-3 py-2 border border-slate-300">Berat (gr)</th>
+                                <th class="px-3 py-2 border border-slate-300">Panjang (m)</th>
+                                <th class="px-3 py-2 border border-slate-300">Berat/m (gr)</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($rows as $row)
                                 <tr class="hover:bg-slate-50">
-                                    <td class="px-3 py-2 border border-slate-200">{{ $row->material_role }}</td>
-                                    <td class="px-3 py-2 border border-slate-200">{{ $row->material_name }}</td>
+                                    <td class="px-3 py-2 border border-slate-200">{{ $row->component }}</td>
+                                    <td class="px-3 py-2 border border-slate-200">{{ $row->material }}</td>
                                     <td class="px-3 py-2 border border-slate-200">{{ $row->thk_mm }}</td>
-                                    <td class="px-3 py-2 border border-slate-200">{{ $row->jumlah_ply }}</td>
+                                    <td class="px-3 py-2 border border-slate-200">{{ $row->ply }}</td>
                                     <td class="px-3 py-2 border border-slate-200">{{ $row->size_in }}</td>
+                                    <td class="px-3 py-2 border border-slate-200">{{ $row->sch }}</td>
                                     <td class="px-3 py-2 border border-slate-200">{{ $row->type }}</td>
                                     <td class="px-3 py-2 border border-slate-200">{{ $row->part_number }}</td>
                                     <td class="px-3 py-2 border border-slate-200">{{ $row->naming }}</td>
+                                    <td class="px-3 py-2 border border-slate-200">{{ $row->code1 }}</td>
+                                    <td class="px-3 py-2 border border-slate-200">{{ $row->code2 }}</td>
+                                    <td class="px-3 py-2 border border-slate-200">{{ $row->code3 }}</td>
+                                    <td class="px-3 py-2 border border-slate-200">{{ $row->quality }}</td>
                                     <td class="px-3 py-2 border border-slate-200">{{ $row->price_sqm }}</td>
                                     <td class="px-3 py-2 border border-slate-200">{{ $row->price_kg }}</td>
+                                    <td class="px-3 py-2 border border-slate-200">{{ $row->price_gram }}</td>
+                                    <td class="px-3 py-2 border border-slate-200">{{ $row->weight_gr }}</td>
+                                    <td class="px-3 py-2 border border-slate-200">{{ $row->length_m }}</td>
+                                    <td class="px-3 py-2 border border-slate-200">{{ $row->weight_per_meter_gr }}</td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td class="px-3 py-6 text-sm text-slate-500 border border-slate-200 text-center" colspan="10">
+                                    <td class="px-3 py-6 text-sm text-slate-500 border border-slate-200 text-center" colspan="19">
                                         Belum ada data validasi material.
                                     </td>
                                 </tr>
@@ -120,7 +138,7 @@
                 <h3 class="text-lg font-semibold text-slate-900">Import Validasi Material EJM</h3>
                 <button type="button" data-close-modal="importModal" class="text-slate-500 hover:text-slate-700">x</button>
             </div>
-            <p class="mb-3 text-sm text-slate-600">Role yang didukung: <b>BELLOW, PIPE_NIPPLE (Pipe - Nipple), FLANGE, COLLAR</b>.</p>
+            <p class="mb-3 text-sm text-slate-600">Component yang didukung: <b>Bellow, Pipe - Nipple, Flange, Collar</b>.</p>
             <form method="POST" action="{{ route('setting.ejm-validation-material.import') }}" enctype="multipart/form-data" class="space-y-3">
                 @csrf
                 <input type="file" name="file" accept=".csv,.txt,.xlsx" required class="w-full rounded-lg border border-slate-300 p-2 text-sm">

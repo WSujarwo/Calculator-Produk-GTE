@@ -61,6 +61,7 @@ class DataValidasiEjmBellowconvController extends Controller
                 ['key' => 'proses', 'label' => 'Validasi Proses', 'url' => route('setting.ejm-validation-proses.index')],
                 ['key' => self::ACTIVE_TAB, 'label' => 'Bellowconv', 'url' => route('setting.ejm-validation-bellowconv.index')],
                 ['key' => 'expansion-joint', 'label' => 'Expansion Joint', 'url' => route('setting.ejm-expansion-joint.index')],
+                ['key' => 'material', 'label' => 'Validasi Material EJM', 'url' => route('setting.ejm-validation-material.index')],
             ],
             'activeTab' => self::ACTIVE_TAB,
         ]);

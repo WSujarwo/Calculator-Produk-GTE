@@ -7,39 +7,47 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DataValidasiEjmMaterial extends Model
 {
-    protected $table = 'validasi_dataejm_materials';
+    protected $table = 'ejm_special_materials';
 
     protected $fillable = [
-        'material_role',
-        'material_name',
+        'component',
+        'material',
         'thk_mm',
-        'jumlah_ply',
+        'ply',
         'size_in',
         'sch',
         'type',
-        'material_id',
         'part_number',
         'description',
         'naming',
+        'code1',
+        'code2',
+        'code3',
+        'thk_text',
         'quality',
         'price_sqm',
         'price_kg',
         'price_gram',
+        'weight_gr',
+        'length_m',
+        'weight_per_meter_gr',
         'is_active',
     ];
 
     protected $casts = [
         'thk_mm' => 'decimal:3',
-        'jumlah_ply' => 'integer',
-        'material_id' => 'integer',
+        'ply' => 'integer',
         'price_sqm' => 'decimal:4',
         'price_kg' => 'decimal:4',
         'price_gram' => 'decimal:6',
+        'weight_gr' => 'decimal:4',
+        'length_m' => 'decimal:6',
+        'weight_per_meter_gr' => 'decimal:4',
         'is_active' => 'boolean',
     ];
 
     public function material(): BelongsTo
     {
-        return $this->belongsTo(Material::class, 'material_id');
+        return $this->belongsTo(Material::class, 'part_number', 'part_number');
     }
 }

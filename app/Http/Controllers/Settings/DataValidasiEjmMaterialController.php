@@ -13,7 +13,7 @@ use ZipArchive;
 
 class DataValidasiEjmMaterialController extends Controller
 {
-    private const TABLE = 'validasi_dataejm_materials';
+    private const TABLE = 'ejm_special_materials';
 
     public function __construct()
     {
@@ -26,20 +26,23 @@ class DataValidasiEjmMaterialController extends Controller
     {
         $query = DB::table(self::TABLE);
 
-        if ($request->filled('material_role')) {
-            $query->where('material_role', strtoupper(trim((string) $request->query('material_role'))));
+        if ($request->filled('component')) {
+            $component = $this->normalizeComponent($request->query('component'));
+            if ($component !== null) {
+                $query->where('component', $component);
+            }
         }
 
         if ($request->filled('q')) {
             $q = trim((string) $request->query('q'));
             $query->where(function ($inner) use ($q) {
-                $inner->where('material_name', 'like', '%' . $q . '%')
+                $inner->where('material', 'like', '%' . $q . '%')
                     ->orWhere('part_number', 'like', '%' . $q . '%')
                     ->orWhere('naming', 'like', '%' . $q . '%');
             });
         }
 
-        $rows = $query->orderBy('material_role')->orderBy('material_name')->paginate(100)->withQueryString();
+        $rows = $query->orderBy('component')->orderBy('material')->paginate(100)->withQueryString();
 
         $validationMenus = [
             ['key' => 'actual', 'label' => 'Actual Design Calculation', 'url' => route('setting.ejm-validation.index', ['tab' => 'actual'])],
@@ -47,7 +50,7 @@ class DataValidasiEjmMaterialController extends Controller
             ['key' => 'proses', 'label' => 'Validasi Proses', 'url' => route('setting.ejm-validation-proses.index')],
             ['key' => 'bellowconv', 'label' => 'Bellowconv', 'url' => route('setting.ejm-validation-bellowconv.index')],
             ['key' => 'expansion-joint', 'label' => 'Expansion Joint', 'url' => route('setting.ejm-expansion-joint.index')],
-            ['key' => 'material', 'label' => 'Material EJM', 'url' => route('setting.ejm-validation-material.index')],
+            ['key' => 'material', 'label' => 'Validasi Material EJM', 'url' => route('setting.ejm-validation-material.index')],
         ];
 
         return view('settings.ejm-validation-material', [
@@ -81,25 +84,32 @@ class DataValidasiEjmMaterialController extends Controller
 
         DB::transaction(function () use ($rows, &$created, &$updated, &$skipped) {
             foreach ($rows as $row) {
-                $role = $this->normalizeRole($row['material_role'] ?? null);
-                $materialName = $this->toNullString($row['material_name'] ?? null);
-                if ($role === null || $materialName === null) {
+                $component = $this->normalizeComponent($row['component'] ?? null);
+                $materialName = $this->toNullString($row['material'] ?? null);
+                if ($component === null || $materialName === null) {
                     $skipped++;
                     continue;
                 }
 
                 $thkMm = $this->toDecimal($row['thk_mm'] ?? null, 3);
-                $jumlahPly = $this->toInt($row['jumlah_ply'] ?? null);
+                $ply = $this->toInt($row['ply'] ?? null);
                 $sizeIn = $this->toNullString($row['size_in'] ?? null);
                 $sch = $this->toNullString($row['sch'] ?? null);
                 $type = $this->toNullString($row['type'] ?? null);
+                $partNumber = $this->toNullString($row['part_number'] ?? null);
+                $description = $this->toNullString($row['description'] ?? null);
+                $naming = $this->toNullString($row['naming'] ?? null);
+                $code1 = $this->toNullString($row['code1'] ?? null);
+                $code2 = $this->toNullString($row['code2'] ?? null);
+                $code3 = $this->toNullString($row['code3'] ?? null);
+                $thkText = $this->toNullString($row['thk_text'] ?? null);
                 $quality = $this->toNullString($row['quality'] ?? null);
                 $priceSqm = $this->toDecimal($row['price_sqm'] ?? null, 4);
                 $priceKg = $this->toDecimal($row['price_kg'] ?? null, 4);
                 $priceGram = $this->toDecimal($row['price_gram'] ?? null, 6);
-                $partNumber = $this->toNullString($row['part_number'] ?? null);
-                $description = $this->toNullString($row['description'] ?? null);
-                $naming = $this->toNullString($row['naming'] ?? null);
+                $weightGr = $this->toDecimal($row['weight_gr'] ?? null, 4);
+                $lengthM = $this->toDecimal($row['length_m'] ?? null, 6);
+                $weightPerMeterGr = $this->toDecimal($row['weight_per_meter_gr'] ?? null, 4);
 
                 $material = $this->upsertMasterMaterial(
                     $partNumber,
@@ -110,26 +120,32 @@ class DataValidasiEjmMaterialController extends Controller
                     $priceSqm,
                     $priceKg,
                     $priceGram,
-                    $role,
+                    $component,
                     $materialName
                 );
 
                 $payload = [
-                    'material_role' => $role,
-                    'material_name' => $materialName,
+                    'component' => $component,
+                    'material' => $materialName,
                     'thk_mm' => $thkMm,
-                    'jumlah_ply' => $jumlahPly,
+                    'ply' => $ply,
                     'size_in' => $sizeIn,
                     'sch' => $sch,
                     'type' => $type,
-                    'material_id' => $material->id,
                     'part_number' => $material->part_number,
                     'description' => $description,
                     'naming' => $naming,
+                    'code1' => $code1,
+                    'code2' => $code2,
+                    'code3' => $code3,
+                    'thk_text' => $thkText,
                     'quality' => $quality,
                     'price_sqm' => $priceSqm,
                     'price_kg' => $priceKg,
                     'price_gram' => $priceGram,
+                    'weight_gr' => $weightGr,
+                    'length_m' => $lengthM,
+                    'weight_per_meter_gr' => $weightPerMeterGr,
                     'is_active' => true,
                     'updated_at' => now(),
                 ];
@@ -155,11 +171,18 @@ class DataValidasiEjmMaterialController extends Controller
 
     public function templateCsv()
     {
-        $headers = ['material_role', 'material_name', 'thk_mm', 'jumlah_ply', 'size_in', 'sch', 'type', 'part_number', 'description', 'naming', 'quality', 'price_sqm', 'price_kg', 'price_gram'];
+        $headers = [
+            'component', 'material', 'thk_mm', 'ply', 'size_in', 'sch', 'type',
+            'part_number', 'description', 'naming',
+            'code1', 'code2', 'code3', 'thk_text', 'quality',
+            'price_sqm', 'price_kg', 'price_gram',
+            'weight_gr', 'length_m', 'weight_per_meter_gr',
+        ];
+
         $rows = [
-            ['BELLOW', 'SA240 304', '0.500', '2', '', '', '', 'BELLOW-SA240304-05-2PLY', 'Dummy bellow', 'Bellow SA240 304 0.5', 'SS304', '1236450', '0', '0'],
-            ['PIPE_NIPPLE', 'SA312 TP304', '', '', '4', 'STD', 'Seamless', 'PIPE-SA312TP304-4-STD-SEA', 'Dummy pipe nipple', 'Pipe Nipple SA312 TP304 4', 'SS304', '0', '0', '0'],
-            ['FLANGE', 'SS304', '', '', '4', '150', 'SO', 'FLANGE-SS304-4-150-SO', 'Dummy flange', 'Flange SS304 4 #150 SO', 'SS304', '0', '0', '0'],
+            ['Bellow', 'SA240 304', '0.500', '2', '', '', '', 'BELLOW-SA240304-05-2PLY', 'Dummy bellow', 'Bellow SA240 304 0.5', '', '', '', '', 'SS304', '1236450', '0', '0', '', '', ''],
+            ['Pipe - Nipple', 'SA312 TP304', '', '', '4', 'STD', 'Seamless', 'PIPE-SA312TP304-4-STD-SEA', 'Dummy pipe nipple', 'Pipe Nipple SA312 TP304 4', '', '', '', '', 'SS304', '0', '0', '0', '', '', ''],
+            ['Flange', 'SS304', '', '', '4', '150', 'SO', 'FLANGE-SS304-4-150-SO', 'Dummy flange', 'Flange SS304 4 #150 SO', '', '', '', '', 'SS304', '0', '0', '0', '', '', ''],
         ];
 
         $lines = [implode(',', $headers)];
@@ -174,22 +197,22 @@ class DataValidasiEjmMaterialController extends Controller
         $content = "\xEF\xBB\xBF" . implode("\n", $lines) . "\n";
         return response($content, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename=ejm_validasi_material_template.csv',
+            'Content-Disposition' => 'attachment; filename=ejm_special_materials_template.csv',
         ]);
     }
 
     public function templateExcel()
     {
         $rows = [
-            ['material_role' => 'BELLOW', 'material_name' => 'SA240 304', 'thk_mm' => '0.500', 'jumlah_ply' => '2', 'size_in' => '', 'sch' => '', 'type' => '', 'part_number' => 'BELLOW-SA240304-05-2PLY', 'description' => 'Dummy bellow', 'naming' => 'Bellow SA240 304 0.5', 'quality' => 'SS304', 'price_sqm' => '1236450', 'price_kg' => '', 'price_gram' => ''],
-            ['material_role' => 'PIPE_NIPPLE', 'material_name' => 'SA312 TP304', 'thk_mm' => '', 'jumlah_ply' => '', 'size_in' => '4', 'sch' => 'STD', 'type' => 'Seamless', 'part_number' => 'PIPE-SA312TP304-4-STD-SEA', 'description' => 'Dummy pipe nipple', 'naming' => 'Pipe Nipple SA312 TP304 4', 'quality' => 'SS304', 'price_sqm' => '', 'price_kg' => '', 'price_gram' => ''],
-            ['material_role' => 'FLANGE', 'material_name' => 'SS304', 'thk_mm' => '', 'jumlah_ply' => '', 'size_in' => '4', 'sch' => '150', 'type' => 'SO', 'part_number' => 'FLANGE-SS304-4-150-SO', 'description' => 'Dummy flange', 'naming' => 'Flange SS304 4 #150 SO', 'quality' => 'SS304', 'price_sqm' => '', 'price_kg' => '', 'price_gram' => ''],
+            ['component' => 'Bellow', 'material' => 'SA240 304', 'thk_mm' => '0.500', 'ply' => '2', 'size_in' => '', 'sch' => '', 'type' => '', 'part_number' => 'BELLOW-SA240304-05-2PLY', 'description' => 'Dummy bellow', 'naming' => 'Bellow SA240 304 0.5', 'code1' => '', 'code2' => '', 'code3' => '', 'thk_text' => '', 'quality' => 'SS304', 'price_sqm' => '1236450', 'price_kg' => '', 'price_gram' => '', 'weight_gr' => '', 'length_m' => '', 'weight_per_meter_gr' => ''],
+            ['component' => 'Pipe - Nipple', 'material' => 'SA312 TP304', 'thk_mm' => '', 'ply' => '', 'size_in' => '4', 'sch' => 'STD', 'type' => 'Seamless', 'part_number' => 'PIPE-SA312TP304-4-STD-SEA', 'description' => 'Dummy pipe nipple', 'naming' => 'Pipe Nipple SA312 TP304 4', 'code1' => '', 'code2' => '', 'code3' => '', 'thk_text' => '', 'quality' => 'SS304', 'price_sqm' => '', 'price_kg' => '', 'price_gram' => '', 'weight_gr' => '', 'length_m' => '', 'weight_per_meter_gr' => ''],
+            ['component' => 'Flange', 'material' => 'SS304', 'thk_mm' => '', 'ply' => '', 'size_in' => '4', 'sch' => '150', 'type' => 'SO', 'part_number' => 'FLANGE-SS304-4-150-SO', 'description' => 'Dummy flange', 'naming' => 'Flange SS304 4 #150 SO', 'code1' => '', 'code2' => '', 'code3' => '', 'thk_text' => '', 'quality' => 'SS304', 'price_sqm' => '', 'price_kg' => '', 'price_gram' => '', 'weight_gr' => '', 'length_m' => '', 'weight_per_meter_gr' => ''],
         ];
 
         $html = view('settings.ejm-validation-material-template-xls', compact('rows'))->render();
         return response($html, 200, [
             'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename=ejm_validasi_material_template.xls',
+            'Content-Disposition' => 'attachment; filename=ejm_special_materials_template.xls',
         ]);
     }
 
@@ -211,20 +234,27 @@ class DataValidasiEjmMaterialController extends Controller
         $rows = [];
         foreach (array_slice($rawRows, 1) as $row) {
             $rows[] = [
-                'material_role' => $this->readCellByIndex($row, $indices['material_role']),
-                'material_name' => $this->readCellByIndex($row, $indices['material_name']),
+                'component' => $this->readCellByIndex($row, $indices['component']),
+                'material' => $this->readCellByIndex($row, $indices['material']),
                 'thk_mm' => $this->readCellByIndex($row, $indices['thk_mm']),
-                'jumlah_ply' => $this->readCellByIndex($row, $indices['jumlah_ply']),
+                'ply' => $this->readCellByIndex($row, $indices['ply']),
                 'size_in' => $this->readCellByIndex($row, $indices['size_in']),
                 'sch' => $this->readCellByIndex($row, $indices['sch']),
                 'type' => $this->readCellByIndex($row, $indices['type']),
                 'part_number' => $this->readCellByIndex($row, $indices['part_number']),
                 'description' => $this->readCellByIndex($row, $indices['description']),
                 'naming' => $this->readCellByIndex($row, $indices['naming']),
+                'code1' => $this->readCellByIndex($row, $indices['code1']),
+                'code2' => $this->readCellByIndex($row, $indices['code2']),
+                'code3' => $this->readCellByIndex($row, $indices['code3']),
+                'thk_text' => $this->readCellByIndex($row, $indices['thk_text']),
                 'quality' => $this->readCellByIndex($row, $indices['quality']),
                 'price_sqm' => $this->readCellByIndex($row, $indices['price_sqm']),
                 'price_kg' => $this->readCellByIndex($row, $indices['price_kg']),
                 'price_gram' => $this->readCellByIndex($row, $indices['price_gram']),
+                'weight_gr' => $this->readCellByIndex($row, $indices['weight_gr']),
+                'length_m' => $this->readCellByIndex($row, $indices['length_m']),
+                'weight_per_meter_gr' => $this->readCellByIndex($row, $indices['weight_per_meter_gr']),
             ];
         }
 
@@ -234,20 +264,27 @@ class DataValidasiEjmMaterialController extends Controller
     private function resolveColumnMap(array $headers): array
     {
         $aliases = [
-            'material_role' => ['h1', 'materialrole', 'role', 'kategori'],
-            'material_name' => ['material', 'materialname'],
-            'thk_mm' => ['thkmm', 'thk'],
-            'jumlah_ply' => ['jumlahply', 'ply', 'jumlahply'],
+            'component' => ['unnamed0', 'component', 'materialrole', 'role', 'kategori', 'h1'],
+            'material' => ['material', 'materialname'],
+            'thk_mm' => ['thkmm'],
+            'ply' => ['ply', 'jumlahply'],
             'size_in' => ['sizein', 'size'],
             'sch' => ['sch'],
             'type' => ['type'],
             'part_number' => ['partnumber'],
             'description' => ['description'],
             'naming' => ['naming'],
+            'code1' => ['code1'],
+            'code2' => ['code2'],
+            'code3' => ['code3'],
+            'thk_text' => ['thktext', 'thk'],
             'quality' => ['quality'],
             'price_sqm' => ['pricesqm'],
             'price_kg' => ['pricekg'],
             'price_gram' => ['pricegram'],
+            'weight_gr' => ['beratgr', 'weightgr'],
+            'length_m' => ['panjangmeter', 'lengthm'],
+            'weight_per_meter_gr' => ['beratpermetergr', 'weightpermetergr'],
         ];
 
         $map = array_fill_keys(array_keys($aliases), null);
@@ -295,7 +332,15 @@ class DataValidasiEjmMaterialController extends Controller
             $shared = simplexml_load_string($sharedXml);
             if ($shared !== false && isset($shared->si)) {
                 foreach ($shared->si as $si) {
-                    $sharedStrings[] = isset($si->t) ? (string) $si->t : '';
+                    if (isset($si->t)) {
+                        $sharedStrings[] = (string) $si->t;
+                        continue;
+                    }
+                    $text = '';
+                    foreach ($si->r as $run) {
+                        $text .= (string) $run->t;
+                    }
+                    $sharedStrings[] = $text;
                 }
             }
         }
@@ -369,14 +414,14 @@ class DataValidasiEjmMaterialController extends Controller
         return $row[$index] ?? null;
     }
 
-    private function normalizeRole(mixed $value): ?string
+    private function normalizeComponent(mixed $value): ?string
     {
         $v = strtoupper(trim((string) ($value ?? '')));
         return match ($v) {
-            'BELLOW' => 'BELLOW',
-            'PIPE - NIPPLE', 'PIPE-NIPPLE', 'PIPE NIPPLE', 'PIPENIPPLE', 'PIPE_END' => 'PIPE_NIPPLE',
-            'FLANGE' => 'FLANGE',
-            'COLLAR' => 'COLLAR',
+            'BELLOW' => 'Bellow',
+            'PIPE - NIPPLE', 'PIPE-NIPPLE', 'PIPE NIPPLE', 'PIPENIPPLE', 'PIPE_END', 'PIPE_NIPPLE' => 'Pipe - Nipple',
+            'FLANGE' => 'Flange',
+            'COLLAR' => 'Collar',
             default => null,
         };
     }
@@ -432,10 +477,11 @@ class DataValidasiEjmMaterialController extends Controller
         ?string $priceSqm,
         ?string $priceKg,
         ?string $priceGram,
-        string $role,
+        string $component,
         string $materialName
     ): Material {
-        $partNumber = $partNumber ?: strtoupper(substr($role, 0, 3) . '-' . preg_replace('/[^A-Z0-9]/', '', strtoupper($materialName)) . '-' . substr(sha1($materialName . '|' . $role . '|' . ($thkMm ?? '')), 0, 6));
+        $prefix = strtoupper(substr(preg_replace('/[^A-Z]/', '', strtoupper($component)) ?: 'MAT', 0, 3));
+        $partNumber = $partNumber ?: strtoupper($prefix . '-' . preg_replace('/[^A-Z0-9]/', '', strtoupper($materialName)) . '-' . substr(sha1($materialName . '|' . $component . '|' . ($thkMm ?? '')), 0, 6));
 
         $material = Material::query()->where('part_number', $partNumber)->first();
         if (! $material) {
@@ -455,3 +501,4 @@ class DataValidasiEjmMaterialController extends Controller
         return $material;
     }
 }
+
