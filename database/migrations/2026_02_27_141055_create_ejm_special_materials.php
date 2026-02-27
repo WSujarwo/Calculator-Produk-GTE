@@ -7,11 +7,9 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::dropIfExists('ejm_special_materials');
-        Schema::dropIfExists('validasi_dataejm_materials');
-
         Schema::create('ejm_special_materials', function (Blueprint $table) {
-            $table->id();
+            // Ini akan menghasilkan BIGINT UNSIGNED
+            $table->id(); 
             $table->string('component', 100)->index();
             $table->string('material', 150)->nullable()->index();
             $table->decimal('thk_mm', 10, 3)->nullable();
@@ -36,6 +34,7 @@ return new class extends Migration {
             $table->boolean('is_active')->default(true)->index();
             $table->timestamps();
 
+            // Natural Key Unique
             $table->unique(
                 ['component', 'material', 'thk_mm', 'ply', 'size_in', 'sch', 'type'],
                 'uq_ejm_special_materials_natural'
@@ -48,4 +47,3 @@ return new class extends Migration {
         Schema::dropIfExists('ejm_special_materials');
     }
 };
-
