@@ -57,11 +57,26 @@
                 GPP
             </a>
         </li>
-        <li>
-            <a href="{{ route('calculation.ejm') }}"
-               class="{{ request()->routeIs('calculation.ejm') ? 'active' : '' }}">
-                EJM
+        <li class="has-submenu {{ request()->routeIs('calculation.ejm') || request()->routeIs('pcelist') || request()->routeIs('orderlist') ? 'open' : '' }}">
+            <a href="#"
+               class="submenu-toggle {{ request()->routeIs('calculation.ejm') || request()->routeIs('pcelist') || request()->routeIs('orderlist') ? 'active' : '' }}">
+                <span>EJM</span>
+                <span class="submenu-arrow material-symbols-rounded">expand_more</span>
             </a>
+            <ul class="submenu">
+                    <li>
+                        <a href="{{ route('pcelist') }}"
+                           class="{{ request()->routeIs('pcelist') ? 'active' : '' }}">
+                            List PCE Order
+                        </a>
+                    </li>
+                <li>
+                    <a href="{{ route('orderlist') }}"
+                       class="{{ request()->routeIs('orderlist') ? 'active' : '' }}">
+                        List Order
+                    </a>
+                </li>
+            </ul>
         </li>
     </ul>
 
@@ -107,7 +122,7 @@
             'master.product-shapes.*',
             'master.type-configs.*',
             'master.cost-products.*',
-            'master.materials.*'
+            'master.materials.*',
         ) ? 'open' : '' }}">
 
         <a href="#"
@@ -325,11 +340,26 @@
                 GPP
             </a>
         </li>
-        <li>
-            <a href="{{ route('calculation.ejm') }}"
-               class="{{ request()->routeIs('calculation.ejm') ? 'active' : '' }}">
-                EJM
+        <li class="has-submenu {{ request()->routeIs('calculation.ejm') || request()->routeIs('pcelist') || request()->routeIs('orderlist') ? 'open' : '' }}">
+            <a href="#"
+               class="submenu-toggle {{ request()->routeIs('calculation.ejm') || request()->routeIs('pcelist') || request()->routeIs('orderlist') ? 'active' : '' }}">
+                <span>EJM</span>
+                <span class="submenu-arrow material-symbols-rounded">expand_more</span>
             </a>
+            <ul class="submenu">
+                    <li>
+                        <a href="{{ route('pcelist') }}"
+                           class="{{ request()->routeIs('pcelist') ? 'active' : '' }}">
+                            List PCE Order
+                        </a>
+                    </li>
+                <li>
+                    <a href="{{ route('orderlist') }}"
+                       class="{{ request()->routeIs('orderlist') ? 'active' : '' }}">
+                        List Order
+                    </a>
+                </li>
+            </ul>
         </li>
     </ul>
     

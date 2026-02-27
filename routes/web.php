@@ -23,7 +23,7 @@ use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\Calculation\GppCalculationController;
 use App\Http\Controllers\Calculation\EjmCalculationController;
-use App\Http\Controllers\Calculation\PceController;
+use App\Http\Controllers\PceHeaderController;
 
 
 Route::get('/', function () {
@@ -123,14 +123,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/quotations/inline-marketings', [QuotationController::class, 'storeInlineMarketing'])->name('quotations.inline-marketings.store');
     Route::resource('quotations', QuotationController::class);
 
-    Route::prefix('calculation/ejm/pce')->name('calculation.ejm.pce.')->group(function () {
-        Route::get('/', [PceController::class, 'index'])->name('index');
-        Route::post('/headers', [PceController::class, 'storeHeader'])->name('headers.store');
-        Route::put('/headers/{pceHeader}', [PceController::class, 'updateHeader'])->name('headers.update');
-        Route::post('/headers/{pceHeader}/items', [PceController::class, 'storeItem'])->name('items.store');
-        Route::put('/headers/{pceHeader}/items/{pceItem}', [PceController::class, 'updateItem'])->name('items.update');
-        Route::get('/lookup/validation', [PceController::class, 'lookupValidation'])->name('lookup.validation');
-    });
+    Route::get('/pce-list', [PceHeaderController::class, 'index'])->name('pcelist');
+    Route::post('/pce-headers', [PceHeaderController::class, 'store'])->name('pce-headers.store');
+    Route::get('/pce-headers/{pceHeader}', [PceHeaderController::class, 'show'])->name('pce-headers.show');
+    Route::get('/pce-headers/{pceHeader}/edit', [PceHeaderController::class, 'edit'])->name('pce-headers.edit');
+    Route::put('/pce-headers/{pceHeader}', [PceHeaderController::class, 'update'])->name('pce-headers.update');
+    Route::delete('/pce-headers/{pceHeader}', [PceHeaderController::class, 'destroy'])->name('pce-headers.destroy');
+
+
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

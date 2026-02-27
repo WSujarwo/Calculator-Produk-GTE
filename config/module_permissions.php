@@ -26,6 +26,7 @@ return [
         ],
         'Sales' => [
             'quotations' => 'Quotations',
+            'pce-headers' => 'PCE Headers',
         ],
     ],
 ];

@@ -135,13 +135,7 @@ class DataValidasiEjmMaterialController extends Controller
                 ];
 
                 $existing = DB::table(self::TABLE)
-                    ->where('material_role', $role)
-                    ->where('material_name', $materialName)
-                    ->where('thk_mm', $thkMm)
-                    ->where('jumlah_ply', $jumlahPly)
-                    ->where('size_in', $sizeIn)
-                    ->where('sch', $sch)
-                    ->where('type', $type)
+                    ->where('part_number', $material->part_number)
                     ->first();
 
                 if ($existing) {
