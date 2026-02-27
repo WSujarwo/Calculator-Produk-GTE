@@ -25,6 +25,7 @@ use App\Http\Controllers\Calculation\GppCalculationController;
 use App\Http\Controllers\Calculation\EjmCalculationController;
 use App\Http\Controllers\PceHeaderController;
 use App\Http\Controllers\PceItemController;
+use App\Http\Controllers\Extractor\EjmDetailTubeController;
 
 
 Route::get('/', function () {
@@ -59,6 +60,7 @@ Route::get('/extractor/gpp', function () {
 Route::get('/extractor/ejm', function () {
     return view('extractor.ejm');
 })->name('extractor.ejm');
+Route::get('/extractor/ejm/detailtube', [EjmDetailTubeController::class, 'index'])->name('extractor.ejm.detailtube');
 
 Route::get('/quotation', function () {
     return view('quotation');
