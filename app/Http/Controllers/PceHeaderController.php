@@ -28,8 +28,18 @@ class PceHeaderController extends Controller
                     $sub->from('pce_items')
                         ->selectRaw('COALESCE(SUM(qty), 0)')
                         ->whereColumn('pce_items.pce_header_id', 'pce_headers.id');
-                }, 'quantity_item')
-                ->selectRaw('0 as grand_total_idr');
+                }, 'quantity_item');
+
+            if (Schema::hasTable('ejm_detail_ejms') && Schema::hasColumn('ejm_detail_ejms', 'pce_item_id')) {
+                $query->selectSub(function ($sub) {
+                    $sub->from('pce_items')
+                        ->leftJoin('ejm_detail_ejms as e', 'e.pce_item_id', '=', 'pce_items.id')
+                        ->selectRaw('COALESCE(SUM(e.grand_total), 0)')
+                        ->whereColumn('pce_items.pce_header_id', 'pce_headers.id');
+                }, 'grand_total_idr');
+            } else {
+                $query->selectRaw('0 as grand_total_idr');
+            }
         } elseif (Schema::hasTable('pce_details') && Schema::hasColumn('pce_details', 'pce_header_id')) {
             $query
                 ->selectSub(function ($sub) {

@@ -26,6 +26,12 @@ use App\Http\Controllers\Calculation\EjmCalculationController;
 use App\Http\Controllers\PceHeaderController;
 use App\Http\Controllers\PceItemController;
 use App\Http\Controllers\Extractor\EjmDetailTubeController;
+use App\Http\Controllers\Extractor\EjmDetailBellowsController;
+use App\Http\Controllers\Extractor\EjmDetailCollarController;
+use App\Http\Controllers\Extractor\EjmDetailMetalBellowsController;
+use App\Http\Controllers\Extractor\EjmDetailPipeEndController;
+use App\Http\Controllers\Extractor\EjmDetailFlangeController;
+use App\Http\Controllers\Extractor\EjmDetailEjmController;
 
 
 Route::get('/', function () {
@@ -61,6 +67,36 @@ Route::get('/extractor/ejm', function () {
     return view('extractor.ejm');
 })->name('extractor.ejm');
 Route::get('/extractor/ejm/detailtube', [EjmDetailTubeController::class, 'index'])->name('extractor.ejm.detailtube');
+Route::post('/extractor/ejm/detailtube/generate', [EjmDetailTubeController::class, 'generate'])
+    ->middleware('auth')
+    ->name('extractor.ejm.detailtube.generate');
+Route::get('/extractor/ejm/detailbellows', [EjmDetailBellowsController::class, 'index'])->name('extractor.ejm.detailbellows');
+Route::post('/extractor/ejm/detailbellows/generate', [EjmDetailBellowsController::class, 'generate'])
+    ->middleware('auth')
+    ->name('extractor.ejm.detailbellows.generate');
+Route::get('/extractor/ejm/detailcollar', [EjmDetailCollarController::class, 'index'])->name('extractor.ejm.detailcollar');
+Route::post('/extractor/ejm/detailcollar/generate', [EjmDetailCollarController::class, 'generate'])
+    ->middleware('auth')
+    ->name('extractor.ejm.detailcollar.generate');
+Route::get('/extractor/ejm/detailmetalbellows', [EjmDetailMetalBellowsController::class, 'index'])->name('extractor.ejm.detailmetalbellows');
+Route::post('/extractor/ejm/detailmetalbellows/generate', [EjmDetailMetalBellowsController::class, 'generate'])
+    ->middleware('auth')
+    ->name('extractor.ejm.detailmetalbellows.generate');
+Route::get('/extractor/ejm/detailpipeend', [EjmDetailPipeEndController::class, 'index'])->name('extractor.ejm.detailpipeend');
+Route::post('/extractor/ejm/detailpipeend/generate', [EjmDetailPipeEndController::class, 'generate'])
+    ->middleware('auth')
+    ->name('extractor.ejm.detailpipeend.generate');
+Route::get('/extractor/ejm/detailflange', [EjmDetailFlangeController::class, 'index'])->name('extractor.ejm.detailflange');
+Route::post('/extractor/ejm/detailflange/generate', [EjmDetailFlangeController::class, 'generate'])
+    ->middleware('auth')
+    ->name('extractor.ejm.detailflange.generate');
+Route::get('/extractor/ejm/detailejm', [EjmDetailEjmController::class, 'index'])->name('extractor.ejm.detailejm');
+Route::post('/extractor/ejm/detailejm/generate', [EjmDetailEjmController::class, 'generate'])
+    ->middleware('auth')
+    ->name('extractor.ejm.detailejm.generate');
+Route::post('/extractor/ejm/detailejm/margin', [EjmDetailEjmController::class, 'updateMargin'])
+    ->middleware('auth')
+    ->name('extractor.ejm.detailejm.margin');
 
 Route::get('/quotation', function () {
     return view('quotation');
@@ -113,6 +149,11 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::get('/setting/ejm-validation-material', [DataValidasiEjmMaterialController::class, 'index'])->name('setting.ejm-validation-material.index');
     Route::put('/settings/ejm-validation/material/{id}', [DataValidasiEjmMaterialController::class, 'update'])->name('setting.ejm-validation-material.update');
     Route::delete('/settings/ejm-validation/material/{id}', [DataValidasiEjmMaterialController::class, 'destroy'])->name('setting.ejm-validation-material.destroy');
+    Route::get('/setting/ejm-validation-material/import', function () {
+        return redirect()
+            ->route('setting.ejm-validation-material.index')
+            ->with('error', 'Akses import harus via form upload (POST), bukan membuka URL import langsung.');
+    });
     Route::post('/setting/ejm-validation-material/import', [DataValidasiEjmMaterialController::class, 'import'])->name('setting.ejm-validation-material.import');
     Route::get('/setting/ejm-validation-material/template/csv', [DataValidasiEjmMaterialController::class, 'templateCsv'])->name('setting.ejm-validation-material.template.csv');
     Route::get('/setting/ejm-validation-material/template/excel', [DataValidasiEjmMaterialController::class, 'templateExcel'])->name('setting.ejm-validation-material.template.excel');

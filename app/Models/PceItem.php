@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class PceItem extends Model
 {
@@ -79,5 +80,40 @@ class PceItem extends Model
     public function materialPipeEnd(): BelongsTo
     {
         return $this->belongsTo(DataValidasiEjmMaterial::class, 'material_pipe_end_id');
+    }
+
+    public function detailTube(): HasOne
+    {
+        return $this->hasOne(EjmDetailTube::class, 'pce_item_id');
+    }
+
+    public function detailBellows(): HasOne
+    {
+        return $this->hasOne(EjmDetailBellows::class, 'pce_item_id');
+    }
+
+    public function detailCollar(): HasOne
+    {
+        return $this->hasOne(EjmDetailCollar::class, 'pce_item_id');
+    }
+
+    public function detailMetalBellows(): HasOne
+    {
+        return $this->hasOne(EjmDetailMetalBellows::class, 'pce_item_id');
+    }
+
+    public function detailPipeEnd(): HasOne
+    {
+        return $this->hasOne(EjmDetailPipeEnd::class, 'pce_item_id');
+    }
+
+    public function detailFlange(): HasOne
+    {
+        return $this->hasOne(EjmDetailFlange::class, 'pce_item_id');
+    }
+
+    public function detailEjm(): HasOne
+    {
+        return $this->hasOne(EjmDetailEjm::class, 'pce_item_id');
     }
 }

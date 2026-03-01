@@ -3,50 +3,44 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DataValidasiEjmProses extends Model
 {
-    protected $table = 'data_validasiejm_proses';
+    protected $table = 'ejm_process_times';
 
     protected $fillable = [
-        'component_type',
-        'process_name',
+        'process_definition_id',
         'nb',
-        'tube_inner',
-        'price_tube_inner',
-        'tube_outer',
-        'price_tube_outer',
-        'unit',
+        'noc',
+        'minutes_inner',
+        'minutes_outer',
         'notes',
     ];
 
     protected $casts = [
+        'process_definition_id' => 'integer',
         'nb' => 'integer',
-        'tube_inner' => 'integer',
-        'tube_outer' => 'integer',
-        'price_tube_inner' => 'decimal:2',
-        'price_tube_outer' => 'decimal:2',
+        'noc' => 'integer',
+        'minutes_inner' => 'decimal:2',
+        'minutes_outer' => 'decimal:2',
     ];
 
-    /**
-     * Scope: filter by component_type
-     */
+    public function definition(): BelongsTo
+    {
+        return $this->belongsTo(EjmProcessDefinition::class, 'process_definition_id');
+    }
+
     public function scopeComponent($query, string $componentType)
     {
-        return $query->where('component_type', $componentType);
+        return $query->whereHas('definition', fn ($inner) => $inner->where('component_type', $componentType));
     }
 
-    /**
-     * Scope: filter by process_name
-     */
     public function scopeProcess($query, string $processName)
     {
-        return $query->where('process_name', $processName);
+        return $query->whereHas('definition', fn ($inner) => $inner->where('process_name', $processName));
     }
 
-    /**
-     * Scope: filter by NB
-     */
     public function scopeNb($query, int $nb)
     {
         return $query->where('nb', $nb);

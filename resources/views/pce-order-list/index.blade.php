@@ -47,9 +47,14 @@
             </a>
         </div>
 
+        <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+            <p class="text-xs text-emerald-700">Grand Total Keseluruhan (sesuai filter)</p>
+            <p class="text-xl font-bold text-emerald-900">Rp {{ number_format((float) ($overallGrandTotal ?? 0), 2, '.', ',') }}</p>
+        </div>
+
         <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div class="overflow-x-auto">
-                <table class="min-w-[1800px] text-sm">
+                <table class="min-w-[2200px] text-sm">
                     <thead class="bg-slate-100 text-slate-900">
                         <tr>
                             <th class="px-3 py-2 text-left">No</th>
@@ -68,6 +73,9 @@
                             <th class="px-3 py-2 text-left">Material Bellow</th>
                             <th class="px-3 py-2 text-left">Material Flange</th>
                             <th class="px-3 py-2 text-left">Material Pipe End</th>
+                            <th class="px-3 py-2 text-right">Total EJM</th>
+                            <th class="px-3 py-2 text-right">Margin (%)</th>
+                            <th class="px-3 py-2 text-right">Grand Total EJM</th>
                             <th class="px-3 py-2 text-left">Aksi</th>
                         </tr>
                     </thead>
@@ -136,6 +144,18 @@
                                     {{ $item->materialPipeEnd?->part_number ?? '-' }}
                                 </td>
 
+                                <td class="px-3 py-2 text-right">
+                                    {{ $item->detailEjm?->total !== null ? number_format((float) $item->detailEjm->total, 2, '.', ',') : '-' }}
+                                </td>
+
+                                <td class="px-3 py-2 text-right">
+                                    {{ $item->detailEjm?->margin_percent !== null ? number_format((float) $item->detailEjm->margin_percent, 2, '.', ',') : '-' }}
+                                </td>
+
+                                <td class="px-3 py-2 text-right font-semibold text-emerald-700">
+                                    {{ $item->detailEjm?->grand_total !== null ? number_format((float) $item->detailEjm->grand_total, 2, '.', ',') : '-' }}
+                                </td>
+
                                 <td class="px-3 py-2">
                                     <div class="flex gap-1">
                                         <a href="{{ route('pce-orderlist.show', $item) }}"
@@ -163,7 +183,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="16" class="px-3 py-6 text-center text-slate-500">
+                                <td colspan="20" class="px-3 py-6 text-center text-slate-500">
                                     Belum ada data.
                                 </td>
                             </tr>

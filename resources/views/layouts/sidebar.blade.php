@@ -105,52 +105,52 @@
                 GPP
             </a>
         </li>
-        <li class="has-submenu {{ request()->routeIs('extractor.ejm') || request()->routeIs('detailTube') || request()->routeIs('detailBellow') || request()->routeIs('detailCollar') || request()->routeIs('detailPipeEnd') || request()->routeIs('detailFlange') || request()->routeIs('detailEJM') ? 'open' : '' }}">
+        <li class="has-submenu {{ request()->routeIs('extractor.ejm') || request()->routeIs('extractor.ejm.detailtube') || request()->routeIs('extractor.ejm.detailbellows') || request()->routeIs('extractor.ejm.detailcollar') || request()->routeIs('extractor.ejm.detailmetalbellows') || request()->routeIs('extractor.ejm.detailpipeend') || request()->routeIs('extractor.ejm.detailflange') || request()->routeIs('extractor.ejm.detailejm') || request()->routeIs('detailTube') || request()->routeIs('detailBellow') || request()->routeIs('detailCollar') || request()->routeIs('detailPipeEnd') || request()->routeIs('detailFlange') || request()->routeIs('detailEJM') ? 'open' : '' }}">
             <a href="#"
-               class="submenu-toggle {{ request()->routeIs('extractor.ejm') || request()->routeIs('detailTube') || request()->routeIs('detailBellow') || request()->routeIs('detailCollar') || request()->routeIs('detailPipeEnd') || request()->routeIs('detailFlange') || request()->routeIs('detailEJM') ? 'active' : '' }}">
+               class="submenu-toggle {{ request()->routeIs('extractor.ejm') || request()->routeIs('extractor.ejm.detailtube') || request()->routeIs('extractor.ejm.detailbellows') || request()->routeIs('extractor.ejm.detailcollar') || request()->routeIs('extractor.ejm.detailmetalbellows') || request()->routeIs('extractor.ejm.detailpipeend') || request()->routeIs('extractor.ejm.detailflange') || request()->routeIs('extractor.ejm.detailejm') || request()->routeIs('detailTube') || request()->routeIs('detailBellow') || request()->routeIs('detailCollar') || request()->routeIs('detailPipeEnd') || request()->routeIs('detailFlange') || request()->routeIs('detailEJM') ? 'active' : '' }}">
                 <span>EJM</span>
                 <span class="submenu-arrow material-symbols-rounded">expand_more</span>
             </a>
             <ul class="submenu">
                 <li>
-                    <a href="#"
-                        class="{{ request()->routeIs('detailTube') ? 'active' : '' }}">
+                    <a href="{{ route('extractor.ejm.detailtube') }}"
+                        class="{{ request()->routeIs('extractor.ejm.detailtube') || request()->routeIs('detailTube') ? 'active' : '' }}">
                         Detail Tube 
                     </a>
                 </li>
                 <li>
-                    <a href="#"
-                        class="{{ request()->routeIs('detailbellows') ? 'active' : '' }}">
+                    <a href="{{ route('extractor.ejm.detailbellows') }}"
+                        class="{{ request()->routeIs('extractor.ejm.detailbellows') || request()->routeIs('detailbellows') ? 'active' : '' }}">
                         Detail Bellows 
                     </a>
                 </li>
                 <li>
-                    <a href="#"
-                        class="{{ request()->routeIs('detailCollar') ? 'active' : '' }}">
+                    <a href="{{ route('extractor.ejm.detailcollar') }}"
+                        class="{{ request()->routeIs('extractor.ejm.detailcollar') || request()->routeIs('detailCollar') ? 'active' : '' }}">
                         Detail Collar 
                     </a>
                 </li>
                 <li>
-                    <a href="#"
-                        class="{{ request()->routeIs('detailMetalBellows') ? 'active' : '' }}">
+                    <a href="{{ route('extractor.ejm.detailmetalbellows') }}"
+                        class="{{ request()->routeIs('extractor.ejm.detailmetalbellows') || request()->routeIs('detailMetalBellows') ? 'active' : '' }}">
                         Detail Metal Bellows  
                     </a>
                 </li>
                 <li>
-                    <a href="#"
-                        class="{{ request()->routeIs('detailPipeEnd') ? 'active' : '' }}">
+                    <a href="{{ route('extractor.ejm.detailpipeend') }}"
+                        class="{{ request()->routeIs('extractor.ejm.detailpipeend') || request()->routeIs('detailPipeEnd') ? 'active' : '' }}">
                         Detail Pipe End  
                     </a>
                 </li>
                 <li>
-                    <a href="#"
-                        class="{{ request()->routeIs('detailFlange') ? 'active' : '' }}">
+                    <a href="{{ route('extractor.ejm.detailflange') }}"
+                        class="{{ request()->routeIs('extractor.ejm.detailflange') || request()->routeIs('detailFlange') ? 'active' : '' }}">
                         Detail Flange 
                     </a>
                 </li>
                 <li>
-                    <a href="#"
-                        class="{{ request()->routeIs('detailEJM') ? 'active' : '' }}">
+                    <a href="{{ route('extractor.ejm.detailejm') }}"
+                        class="{{ request()->routeIs('extractor.ejm.detailejm') || request()->routeIs('detailEJM') ? 'active' : '' }}">
                         Detail EJM 
                     </a>
                 </li>

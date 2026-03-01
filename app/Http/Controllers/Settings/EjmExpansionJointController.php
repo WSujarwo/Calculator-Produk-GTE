@@ -413,7 +413,9 @@ class EjmExpansionJointController extends Controller
     private function readCsvRows(string $path): array
     {
         $rows = [];
+        $delimiter = $this->detectCsvDelimiter($path);
         $file = new \SplFileObject($path);
+        $file->setCsvControl($delimiter);
         $file->setFlags(\SplFileObject::READ_CSV | \SplFileObject::SKIP_EMPTY);
         foreach ($file as $row) {
             if (! is_array($row)) {
@@ -425,6 +427,40 @@ class EjmExpansionJointController extends Controller
             $rows[] = array_map(fn ($cell) => is_string($cell) ? trim($cell) : $cell, $row);
         }
         return $rows;
+    }
+
+    private function detectCsvDelimiter(string $path): string
+    {
+        $handle = fopen($path, 'r');
+        if (! $handle) {
+            return ',';
+        }
+
+        $line = '';
+        while (($raw = fgets($handle)) !== false) {
+            $line = trim($raw);
+            if ($line !== '') {
+                break;
+            }
+        }
+        fclose($handle);
+
+        if ($line === '') {
+            return ',';
+        }
+
+        // Remove UTF-8 BOM if present on first line.
+        $line = preg_replace('/^\xEF\xBB\xBF/', '', $line) ?? $line;
+
+        $candidates = [
+            ';' => substr_count($line, ';'),
+            ',' => substr_count($line, ','),
+            "\t" => substr_count($line, "\t"),
+        ];
+        arsort($candidates);
+        $best = array_key_first($candidates);
+
+        return ($best !== null && $candidates[$best] > 0) ? $best : ',';
     }
 
     private function readXlsxRows(string $path): array

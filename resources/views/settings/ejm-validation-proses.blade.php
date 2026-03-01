@@ -3,7 +3,7 @@
         <div class="px-6 lg:px-10 flex items-start justify-between gap-3">
             <div>
                 <h2 class="font-bold text-2xl text-gray-900 leading-tight">Validasi Proses EJM</h2>
-                <p class="text-sm text-gray-600">Kelola tabel <code>data_validasiejm_proses</code>.</p>
+                <p class="text-sm text-gray-600">Kelola tabel <code>ejm_process_definitions</code> dan <code>ejm_process_times</code>.</p>
             </div>
             <a href="{{ route('setting') }}"
                class="inline-flex items-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
@@ -13,6 +13,9 @@
     </x-slot>
 
     <div class="w-full px-6 lg:px-10 py-8">
+        @php
+            $modalCloseQuery = collect(request()->query())->except(['edit', 'create'])->all();
+        @endphp
         @if (session('success'))
             <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800">
                 {{ session('success') }}
@@ -214,7 +217,7 @@
         <div class="w-full max-w-4xl rounded-2xl bg-white p-6 shadow-xl">
             <div class="mb-4 flex items-center justify-between">
                 <h3 class="text-lg font-semibold text-slate-900">Edit Validasi Proses</h3>
-                <a href="{{ route('setting.ejm-validation-proses.index', request()->query()) }}" class="text-slate-500 hover:text-slate-700">x</a>
+                <a href="{{ route('setting.ejm-validation-proses.index', $modalCloseQuery) }}" class="text-slate-500 hover:text-slate-700">x</a>
             </div>
             @if ($editing)
                 <form method="POST" action="{{ route('setting.ejm-validation-proses.update') }}" class="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -238,7 +241,7 @@
                         </label>
                     @endforeach
                     <div class="md:col-span-3 flex justify-end gap-2 pt-2">
-                        <a href="{{ route('setting.ejm-validation-proses.index', request()->query()) }}"
+                        <a href="{{ route('setting.ejm-validation-proses.index', $modalCloseQuery) }}"
                            class="rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200">Cancel</a>
                         <button type="submit"
                                 class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">Update</button>

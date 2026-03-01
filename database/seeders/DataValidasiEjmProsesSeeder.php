@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
 class DataValidasiEjmProsesSeeder extends Seeder
@@ -332,12 +333,88 @@ class DataValidasiEjmProsesSeeder extends Seeder
             ];
         }
 
-        // Insert in chunks
-        $chunks = array_chunk($rows, 200);
-        foreach ($chunks as $chunk) {
-            DB::table('data_validasiejm_proses')->insert($chunk);
+        foreach ($rows as $row) {
+            $componentType = trim((string) ($row['component_type'] ?? ''));
+            $processName = trim((string) ($row['process_name'] ?? ''));
+            if ($componentType === '' || $processName === '') {
+                continue;
+            }
+
+            $definition = DB::table('ejm_process_definitions')
+                ->where('component_type', $componentType)
+                ->where('process_name', $processName)
+                ->first();
+
+            $rateInner = $row['price_tube_inner'] ?? 52500;
+            $rateOuter = $row['price_tube_outer'] ?? $rateInner;
+            if ($definition) {
+                $updatePayload = [
+                    'has_inner_outer' => $row['tube_outer'] !== null,
+                    'unit' => $row['unit'] ?? 'menit',
+                    'notes' => $row['notes'] ?? null,
+                    'updated_at' => $now,
+                ];
+                if (Schema::hasColumn('ejm_process_definitions', 'rate_inner_per_hour') && Schema::hasColumn('ejm_process_definitions', 'rate_outer_per_hour')) {
+                    $updatePayload['rate_inner_per_hour'] = $rateInner;
+                    $updatePayload['rate_outer_per_hour'] = $rateOuter;
+                } elseif (Schema::hasColumn('ejm_process_definitions', 'rate_per_hour')) {
+                    $updatePayload['rate_per_hour'] = $rateInner;
+                }
+                DB::table('ejm_process_definitions')->where('id', $definition->id)->update($updatePayload);
+                $definitionId = (int) $definition->id;
+            } else {
+                $maxSeq = (int) DB::table('ejm_process_definitions')
+                    ->where('component_type', $componentType)
+                    ->max('sequence');
+                $insertPayload = [
+                    'component_type' => $componentType,
+                    'process_name' => $processName,
+                    'sequence' => $maxSeq + 1,
+                    'has_inner_outer' => $row['tube_outer'] !== null,
+                    'currency' => 'IDR',
+                    'unit' => $row['unit'] ?? 'menit',
+                    'notes' => $row['notes'] ?? null,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+                if (Schema::hasColumn('ejm_process_definitions', 'rate_inner_per_hour') && Schema::hasColumn('ejm_process_definitions', 'rate_outer_per_hour')) {
+                    $insertPayload['rate_inner_per_hour'] = $rateInner;
+                    $insertPayload['rate_outer_per_hour'] = $rateOuter;
+                } elseif (Schema::hasColumn('ejm_process_definitions', 'rate_per_hour')) {
+                    $insertPayload['rate_per_hour'] = $rateInner;
+                }
+                $definitionId = (int) DB::table('ejm_process_definitions')->insertGetId($insertPayload);
+            }
+
+            $timeQuery = DB::table('ejm_process_times')
+                ->where('process_definition_id', $definitionId)
+                ->whereNull('noc');
+            if ($row['nb'] === null) {
+                $timeQuery->whereNull('nb');
+            } else {
+                $timeQuery->where('nb', (int) $row['nb']);
+            }
+
+            $existingTime = $timeQuery->first();
+            $timePayload = [
+                'minutes_inner' => $row['tube_inner'],
+                'minutes_outer' => $row['tube_outer'],
+                'notes' => $row['notes'] ?? null,
+                'updated_at' => $now,
+            ];
+
+            if ($existingTime) {
+                DB::table('ejm_process_times')->where('id', $existingTime->id)->update($timePayload);
+            } else {
+                DB::table('ejm_process_times')->insert(array_merge($timePayload, [
+                    'process_definition_id' => $definitionId,
+                    'nb' => $row['nb'],
+                    'noc' => null,
+                    'created_at' => $now,
+                ]));
+            }
         }
 
-        $this->command->info('Inserted '.count($rows).' rows into data_validasiejm_proses');
+        $this->command->info('Seeded '.count($rows).' rows into ejm_process_definitions + ejm_process_times');
     }
 }

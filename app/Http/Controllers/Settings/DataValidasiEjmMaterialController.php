@@ -305,17 +305,50 @@ class DataValidasiEjmMaterialController extends Controller
     private function readCsvRows(string $path): array
     {
         $rows = [];
-        $file = new \SplFileObject($path);
-        $file->setFlags(\SplFileObject::READ_CSV | \SplFileObject::SKIP_EMPTY);
-        foreach ($file as $row) {
+        $handle = fopen($path, 'r');
+        if (! $handle) {
+            return [];
+        }
+
+        $firstNonEmpty = null;
+        while (($line = fgets($handle)) !== false) {
+            if (trim($line) === '') {
+                continue;
+            }
+            $firstNonEmpty = preg_replace('/^\xEF\xBB\xBF/', '', $line) ?? $line;
+            break;
+        }
+        if ($firstNonEmpty === null) {
+            fclose($handle);
+            return [];
+        }
+
+        $delimiters = [',', ';', "\t", '|'];
+        $bestDelimiter = ',';
+        $bestCount = -1;
+        foreach ($delimiters as $d) {
+            $count = count(str_getcsv($firstNonEmpty, $d));
+            if ($count > $bestCount) {
+                $bestCount = $count;
+                $bestDelimiter = $d;
+            }
+        }
+
+        rewind($handle);
+        while (($row = fgetcsv($handle, 0, $bestDelimiter)) !== false) {
             if (! is_array($row)) {
                 continue;
             }
             if (count($row) === 1 && trim((string) ($row[0] ?? '')) === '') {
                 continue;
             }
+            if (! empty($row)) {
+                $row[0] = preg_replace('/^\xEF\xBB\xBF/', '', (string) $row[0]) ?? (string) $row[0];
+            }
             $rows[] = array_map(fn ($cell) => is_string($cell) ? trim($cell) : $cell, $row);
         }
+        fclose($handle);
+
         return $rows;
     }
 
@@ -417,13 +450,34 @@ class DataValidasiEjmMaterialController extends Controller
     private function normalizeComponent(mixed $value): ?string
     {
         $v = strtoupper(trim((string) ($value ?? '')));
-        return match ($v) {
+        if ($v === '') {
+            return null;
+        }
+
+        $v = preg_replace('/\s+/', ' ', str_replace(['_', '-'], ' ', $v)) ?? $v;
+
+        $map = [
             'BELLOW' => 'Bellow',
-            'PIPE - NIPPLE', 'PIPE-NIPPLE', 'PIPE NIPPLE', 'PIPENIPPLE', 'PIPE_END', 'PIPE_NIPPLE' => 'Pipe - Nipple',
-            'FLANGE' => 'Flange',
+            'BELLOWS' => 'Bellow',
             'COLLAR' => 'Collar',
-            default => null,
-        };
+            'PIPE' => 'Pipe',
+            'NIPPLE' => 'Nipple',
+            'PIPE NIPPLE' => 'Pipe - Nipple', // Legacy support
+            'PIPE END' => 'Pipe - Nipple', // Legacy support
+            'FLANGE' => 'Flange',
+            'HOLDER' => 'Holder',
+            'SLEEVE' => 'Sleeve',
+            'EQUALIZING RING' => 'Equalizing Ring',
+            'GUSSET' => 'Gusset',
+            'TIE ROD' => 'Tie Rod',
+            'LIMIT ROD' => 'Limit Rod',
+            'SHIPPING ROD' => 'Shipping Rod',
+            'BOLT' => 'Bolt',
+            'NUT' => 'Nut',
+            'WASHER' => 'Washer',
+        ];
+
+        return $map[$v] ?? null;
     }
 
     private function toNullString(mixed $value): ?string
@@ -501,4 +555,3 @@ class DataValidasiEjmMaterialController extends Controller
         return $material;
     }
 }
-

@@ -3,18 +3,19 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
-use App\Models\DataValidasiEjmProses;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 use ZipArchive;
 
 class DataValidasiEjmProsesController extends Controller
 {
     private const ACTIVE_TAB = 'proses';
+    private const TABLE_DEFINITIONS = 'ejm_process_definitions';
+    private const TABLE_TIMES = 'ejm_process_times';
 
     private const EXPORT_HEADERS = [
         'component_type',
@@ -40,17 +41,7 @@ class DataValidasiEjmProsesController extends Controller
 
     public function index(Request $request): View|\Illuminate\Http\JsonResponse
     {
-        $query = DataValidasiEjmProses::query();
-
-        if ($request->filled('component_type')) {
-            $query->where('component_type', trim((string) $request->query('component_type')));
-        }
-        if ($request->filled('process_name')) {
-            $query->where('process_name', trim((string) $request->query('process_name')));
-        }
-        if ($request->filled('nb') && is_numeric($request->query('nb'))) {
-            $query->where('nb', (int) $request->query('nb'));
-        }
+        $query = $this->baseRowsQuery($request);
 
         $rows = $query
             ->orderBy('component_type')
@@ -61,12 +52,27 @@ class DataValidasiEjmProsesController extends Controller
 
         $editing = null;
         if ($request->filled('edit')) {
-            $editing = DataValidasiEjmProses::find((int) $request->query('edit'));
+            $editing = DB::table(self::TABLE_TIMES . ' as t')
+                ->join(self::TABLE_DEFINITIONS . ' as d', 'd.id', '=', 't.process_definition_id')
+                ->where('t.id', (int) $request->query('edit'))
+                ->select([
+                    't.id',
+                    'd.component_type',
+                    'd.process_name',
+                    't.nb',
+                    DB::raw('t.minutes_inner as tube_inner'),
+                    DB::raw($this->priceInnerSelectExpr() . ' as price_tube_inner'),
+                    DB::raw('t.minutes_outer as tube_outer'),
+                    DB::raw($this->priceOuterSelectExpr() . ' as price_tube_outer'),
+                    'd.unit',
+                    DB::raw('COALESCE(t.notes, d.notes) as notes'),
+                ])
+                ->first();
         }
 
         $payload = [
             'rows' => $rows,
-            'editing' => $editing?->toArray(),
+            'editing' => $editing ? (array) $editing : null,
             'openCreateModal' => $request->boolean('create'),
             'validationMenus' => [
                 ['key' => 'actual', 'label' => 'Actual Design Calculation', 'url' => route('setting.ejm-validation.index', ['tab' => 'actual'])],
@@ -94,7 +100,11 @@ class DataValidasiEjmProsesController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $payload = $this->validatedPayload($request);
-        DataValidasiEjmProses::create($payload);
+
+        DB::transaction(function () use ($payload) {
+            $definitionId = $this->upsertDefinition($payload);
+            $this->upsertTime($definitionId, $payload);
+        });
 
         return redirect()->route('setting.ejm-validation-proses.index')
             ->with('success', 'Data validasi proses berhasil ditambahkan.');
@@ -105,9 +115,29 @@ class DataValidasiEjmProsesController extends Controller
         $id = (int) $request->input('id');
         abort_if($id <= 0, 422, 'ID data tidak valid.');
 
-        $record = DataValidasiEjmProses::findOrFail($id);
-        $payload = $this->validatedPayload($request, $id);
-        $record->update($payload);
+        $payload = $this->validatedPayload($request);
+
+        DB::transaction(function () use ($id, $payload) {
+            $existing = DB::table(self::TABLE_TIMES)->where('id', $id)->first();
+            abort_if(! $existing, 404, 'Data validasi proses tidak ditemukan.');
+
+            $oldDefinitionId = (int) $existing->process_definition_id;
+            $targetDefinitionId = $this->upsertDefinition($payload);
+
+            DB::table(self::TABLE_TIMES)
+                ->where('id', $id)
+                ->update([
+                    'process_definition_id' => $targetDefinitionId,
+                    'nb' => $payload['nb'],
+                    'noc' => null,
+                    'minutes_inner' => $payload['tube_inner'],
+                    'minutes_outer' => $payload['tube_outer'],
+                    'notes' => $payload['notes'],
+                    'updated_at' => now(),
+                ]);
+
+            $this->cleanupOrphanDefinition($oldDefinitionId);
+        });
 
         return redirect()->route('setting.ejm-validation-proses.index')
             ->with('success', 'Data validasi proses berhasil diupdate.');
@@ -118,8 +148,14 @@ class DataValidasiEjmProsesController extends Controller
         $id = (int) $request->input('id');
         abort_if($id <= 0, 422, 'ID data tidak valid.');
 
-        $record = DataValidasiEjmProses::findOrFail($id);
-        $record->delete();
+        DB::transaction(function () use ($id) {
+            $existing = DB::table(self::TABLE_TIMES)->where('id', $id)->first();
+            abort_if(! $existing, 404, 'Data validasi proses tidak ditemukan.');
+
+            $definitionId = (int) $existing->process_definition_id;
+            DB::table(self::TABLE_TIMES)->where('id', $id)->delete();
+            $this->cleanupOrphanDefinition($definitionId);
+        });
 
         return redirect()->route('setting.ejm-validation-proses.index')
             ->with('success', 'Data validasi proses berhasil dihapus.');
@@ -149,45 +185,60 @@ class DataValidasiEjmProsesController extends Controller
 
         DB::transaction(function () use ($rows, &$created, &$updated, &$skipped) {
             foreach ($rows as $row) {
-                $componentType = $this->cleanString($row['component_type'] ?? null);
-                $processName = $this->cleanString($row['process_name'] ?? null);
-                if ($componentType === null || $processName === null) {
-                    $skipped++;
-                    continue;
-                }
-
-                $nb = $this->toInteger($row['nb'] ?? null);
                 $payload = [
-                    'component_type' => $componentType,
-                    'process_name' => $processName,
-                    'nb' => $nb,
+                    'component_type' => $this->cleanString($row['component_type'] ?? null),
+                    'process_name' => $this->cleanString($row['process_name'] ?? null),
+                    'nb' => $this->toInteger($row['nb'] ?? null),
                     'tube_inner' => $this->toInteger($row['tube_inner'] ?? null),
                     'price_tube_inner' => $this->toDecimal($row['price_tube_inner'] ?? null),
                     'tube_outer' => $this->toInteger($row['tube_outer'] ?? null),
                     'price_tube_outer' => $this->toDecimal($row['price_tube_outer'] ?? null),
-                    'unit' => $this->cleanString($row['unit'] ?? null),
+                    'unit' => $this->cleanString($row['unit'] ?? null) ?? 'menit',
                     'notes' => $this->cleanString($row['notes'] ?? null),
                 ];
+                [$payload['price_tube_inner'], $payload['price_tube_outer']] = $this->normalizeRates(
+                    $payload['price_tube_inner'],
+                    $payload['price_tube_outer']
+                );
 
-                $existingQuery = DataValidasiEjmProses::query()
-                    ->where('component_type', $componentType)
-                    ->where('process_name', $processName);
-
-                if ($nb === null) {
-                    $existingQuery->whereNull('nb');
-                } else {
-                    $existingQuery->where('nb', $nb);
-                }
-
-                $existing = $existingQuery->first();
-                if ($existing) {
-                    $existing->update($payload);
-                    $updated++;
+                if ($payload['component_type'] === null || $payload['process_name'] === null) {
+                    $skipped++;
                     continue;
                 }
 
-                DataValidasiEjmProses::create($payload);
-                $created++;
+                $definitionId = $this->upsertDefinition($payload);
+
+                $existingQuery = DB::table(self::TABLE_TIMES)
+                    ->where('process_definition_id', $definitionId)
+                    ->whereNull('noc');
+                if ($payload['nb'] === null) {
+                    $existingQuery->whereNull('nb');
+                } else {
+                    $existingQuery->where('nb', $payload['nb']);
+                }
+
+                $existingTime = $existingQuery->first();
+                if ($existingTime) {
+                    DB::table(self::TABLE_TIMES)->where('id', $existingTime->id)->update([
+                        'minutes_inner' => $payload['tube_inner'],
+                        'minutes_outer' => $payload['tube_outer'],
+                        'notes' => $payload['notes'],
+                        'updated_at' => now(),
+                    ]);
+                    $updated++;
+                } else {
+                    DB::table(self::TABLE_TIMES)->insert([
+                        'process_definition_id' => $definitionId,
+                        'nb' => $payload['nb'],
+                        'noc' => null,
+                        'minutes_inner' => $payload['tube_inner'],
+                        'minutes_outer' => $payload['tube_outer'],
+                        'notes' => $payload['notes'],
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    $created++;
+                }
             }
         });
 
@@ -227,26 +278,11 @@ class DataValidasiEjmProsesController extends Controller
         ]);
     }
 
-    private function validatedPayload(Request $request, ?int $ignoreId = null): array
+    private function validatedPayload(Request $request): array
     {
-        $nbInput = $request->input('nb');
-        $processUnique = Rule::unique('data_validasiejm_proses', 'process_name')
-            ->where(function ($query) use ($request, $nbInput) {
-                $query->where('component_type', trim((string) $request->input('component_type')));
-                if ($nbInput === null || $nbInput === '') {
-                    $query->whereNull('nb');
-                } else {
-                    $query->where('nb', (int) $nbInput);
-                }
-            });
-
-        if ($ignoreId !== null) {
-            $processUnique = $processUnique->ignore($ignoreId);
-        }
-
         $data = $request->validate([
             'component_type' => ['required', 'string', 'max:80'],
-            'process_name' => ['required', 'string', 'max:120', $processUnique],
+            'process_name' => ['required', 'string', 'max:120'],
             'nb' => ['nullable', 'integer', 'min:0'],
             'tube_inner' => ['nullable', 'integer', 'min:0'],
             'price_tube_inner' => ['nullable', 'numeric'],
@@ -256,39 +292,163 @@ class DataValidasiEjmProsesController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
+        $priceInner = $this->toDecimal($data['price_tube_inner'] ?? null);
+        $priceOuter = $this->toDecimal($data['price_tube_outer'] ?? null);
+        [$priceInner, $priceOuter] = $this->normalizeRates($priceInner, $priceOuter);
+
         return [
             'component_type' => trim($data['component_type']),
             'process_name' => trim($data['process_name']),
             'nb' => $this->toInteger($data['nb'] ?? null),
             'tube_inner' => $this->toInteger($data['tube_inner'] ?? null),
-            'price_tube_inner' => $this->toDecimal($data['price_tube_inner'] ?? null),
+            'price_tube_inner' => $priceInner,
             'tube_outer' => $this->toInteger($data['tube_outer'] ?? null),
-            'price_tube_outer' => $this->toDecimal($data['price_tube_outer'] ?? null),
-            'unit' => $this->cleanString($data['unit'] ?? null),
+            'price_tube_outer' => $priceOuter,
+            'unit' => $this->cleanString($data['unit'] ?? null) ?? 'menit',
             'notes' => $this->cleanString($data['notes'] ?? null),
         ];
     }
 
-    private function exportRows(Request $request): array
+    private function baseRowsQuery(Request $request)
     {
-        $query = DataValidasiEjmProses::query();
+        $query = DB::table(self::TABLE_TIMES . ' as t')
+            ->join(self::TABLE_DEFINITIONS . ' as d', 'd.id', '=', 't.process_definition_id')
+            ->select([
+                't.id',
+                'd.component_type',
+                'd.process_name',
+                't.nb',
+                DB::raw('t.minutes_inner as tube_inner'),
+                DB::raw($this->priceInnerSelectExpr() . ' as price_tube_inner'),
+                DB::raw('t.minutes_outer as tube_outer'),
+                DB::raw($this->priceOuterSelectExpr() . ' as price_tube_outer'),
+                'd.unit',
+                DB::raw('COALESCE(t.notes, d.notes) as notes'),
+            ]);
+
         if ($request->filled('component_type')) {
-            $query->where('component_type', trim((string) $request->query('component_type')));
+            $query->where('d.component_type', trim((string) $request->query('component_type')));
         }
         if ($request->filled('process_name')) {
-            $query->where('process_name', trim((string) $request->query('process_name')));
+            $query->where('d.process_name', trim((string) $request->query('process_name')));
         }
         if ($request->filled('nb') && is_numeric($request->query('nb'))) {
-            $query->where('nb', (int) $request->query('nb'));
+            $query->where('t.nb', (int) $request->query('nb'));
         }
 
-        return $query
+        return $query;
+    }
+
+    private function exportRows(Request $request): array
+    {
+        return $this->baseRowsQuery($request)
             ->orderBy('component_type')
             ->orderBy('process_name')
             ->orderByRaw('COALESCE(nb, 0) asc')
             ->get(self::EXPORT_HEADERS)
             ->map(fn ($row) => (array) $row)
             ->all();
+    }
+
+    private function upsertDefinition(array $payload): int
+    {
+        $componentType = $payload['component_type'];
+        $processName = $payload['process_name'];
+
+        $rateInner = $payload['price_tube_inner'];
+        $rateOuter = $payload['price_tube_outer'];
+        $hasInnerOuter = $payload['tube_outer'] !== null;
+
+        $existing = DB::table(self::TABLE_DEFINITIONS)
+            ->where('component_type', $componentType)
+            ->where('process_name', $processName)
+            ->first();
+
+        if ($existing) {
+            $updatePayload = [
+                'has_inner_outer' => $hasInnerOuter,
+                'unit' => $payload['unit'] ?? $existing->unit,
+                'notes' => $payload['notes'] ?? $existing->notes,
+                'updated_at' => now(),
+            ];
+            if ($this->hasDualRateColumns()) {
+                $updatePayload['rate_inner_per_hour'] = $rateInner ?? $existing->rate_inner_per_hour ?? '52500.00';
+                $updatePayload['rate_outer_per_hour'] = $rateOuter ?? $existing->rate_outer_per_hour ?? '52500.00';
+            } elseif ($this->hasLegacyRateColumn()) {
+                $updatePayload['rate_per_hour'] = $rateInner ?? $rateOuter ?? $existing->rate_per_hour ?? '52500.00';
+            }
+            DB::table(self::TABLE_DEFINITIONS)->where('id', $existing->id)->update($updatePayload);
+
+            return (int) $existing->id;
+        }
+
+        $sequence = (int) DB::table(self::TABLE_DEFINITIONS)
+            ->where('component_type', $componentType)
+            ->max('sequence') + 1;
+
+        $insertPayload = [
+            'component_type' => $componentType,
+            'process_name' => $processName,
+            'sequence' => max($sequence, 1),
+            'has_inner_outer' => $hasInnerOuter,
+            'currency' => 'IDR',
+            'unit' => $payload['unit'],
+            'notes' => $payload['notes'],
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+        if ($this->hasDualRateColumns()) {
+            $insertPayload['rate_inner_per_hour'] = $rateInner ?? '52500.00';
+            $insertPayload['rate_outer_per_hour'] = $rateOuter ?? '52500.00';
+        } elseif ($this->hasLegacyRateColumn()) {
+            $insertPayload['rate_per_hour'] = $rateInner ?? $rateOuter ?? '52500.00';
+        }
+
+        return (int) DB::table(self::TABLE_DEFINITIONS)->insertGetId($insertPayload);
+    }
+
+    private function upsertTime(int $definitionId, array $payload): void
+    {
+        $query = DB::table(self::TABLE_TIMES)
+            ->where('process_definition_id', $definitionId)
+            ->whereNull('noc');
+
+        if ($payload['nb'] === null) {
+            $query->whereNull('nb');
+        } else {
+            $query->where('nb', $payload['nb']);
+        }
+
+        $existing = $query->first();
+        $values = [
+            'minutes_inner' => $payload['tube_inner'],
+            'minutes_outer' => $payload['tube_outer'],
+            'notes' => $payload['notes'],
+            'updated_at' => now(),
+        ];
+
+        if ($existing) {
+            DB::table(self::TABLE_TIMES)->where('id', $existing->id)->update($values);
+            return;
+        }
+
+        DB::table(self::TABLE_TIMES)->insert(array_merge($values, [
+            'process_definition_id' => $definitionId,
+            'nb' => $payload['nb'],
+            'noc' => null,
+            'created_at' => now(),
+        ]));
+    }
+
+    private function cleanupOrphanDefinition(int $definitionId): void
+    {
+        $hasChildren = DB::table(self::TABLE_TIMES)
+            ->where('process_definition_id', $definitionId)
+            ->exists();
+
+        if (! $hasChildren) {
+            DB::table(self::TABLE_DEFINITIONS)->where('id', $definitionId)->delete();
+        }
     }
 
     private function buildCsvResponse(array $rows, string $filename)
@@ -340,22 +500,22 @@ class DataValidasiEjmProsesController extends Controller
                 'process_name' => 'Cutting Shearing',
                 'nb' => 100,
                 'tube_inner' => 30,
-                'price_tube_inner' => 15000.00,
+                'price_tube_inner' => 52500.00,
                 'tube_outer' => 30,
-                'price_tube_outer' => 15500.00,
+                'price_tube_outer' => 52500.00,
                 'unit' => 'menit',
                 'notes' => null,
             ],
             [
-                'component_type' => 'EJM PRODUCTION',
+                'component_type' => 'EJM Production',
                 'process_name' => 'Assembly',
                 'nb' => 250,
                 'tube_inner' => 2,
-                'price_tube_inner' => 25000.00,
+                'price_tube_inner' => 52500.00,
                 'tube_outer' => 2,
-                'price_tube_outer' => 27000.00,
-                'unit' => 'satuan',
-                'notes' => 'Khusus EJM production biasanya satuan',
+                'price_tube_outer' => 52500.00,
+                'unit' => 'menit',
+                'notes' => 'Satuan proses assembly',
             ],
         ];
     }
@@ -590,5 +750,52 @@ class DataValidasiEjmProsesController extends Controller
         }
 
         return number_format((float) $normalized, $scale, '.', '');
+    }
+
+    private function hasDualRateColumns(): bool
+    {
+        return Schema::hasColumn(self::TABLE_DEFINITIONS, 'rate_inner_per_hour')
+            && Schema::hasColumn(self::TABLE_DEFINITIONS, 'rate_outer_per_hour');
+    }
+
+    private function hasLegacyRateColumn(): bool
+    {
+        return Schema::hasColumn(self::TABLE_DEFINITIONS, 'rate_per_hour');
+    }
+
+    private function priceInnerSelectExpr(): string
+    {
+        if ($this->hasDualRateColumns()) {
+            return 'COALESCE(d.rate_inner_per_hour, 52500)';
+        }
+        if ($this->hasLegacyRateColumn()) {
+            return 'COALESCE(d.rate_per_hour, 52500)';
+        }
+        return '52500';
+    }
+
+    private function priceOuterSelectExpr(): string
+    {
+        if ($this->hasDualRateColumns()) {
+            return 'COALESCE(d.rate_outer_per_hour, d.rate_inner_per_hour, 52500)';
+        }
+        if ($this->hasLegacyRateColumn()) {
+            return 'COALESCE(d.rate_per_hour, 52500)';
+        }
+        return '52500';
+    }
+
+    private function normalizeRates(?string $inner, ?string $outer): array
+    {
+        if ($inner === null && $outer === null) {
+            return ['52500.00', '52500.00'];
+        }
+        if ($inner === null) {
+            $inner = $outer;
+        }
+        if ($outer === null) {
+            $outer = $inner;
+        }
+        return [$inner, $outer];
     }
 }

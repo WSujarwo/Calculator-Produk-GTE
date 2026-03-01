@@ -8,6 +8,7 @@ use App\Models\PceHeader;
 use App\Models\PceItem;
 use App\Models\ProductTypeConfig;
 use App\Models\Shape;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -18,7 +19,7 @@ class PceItemController extends Controller
 {
     public function index(Request $request): View
     {
-        $items = PceItem::query()
+        $baseQuery = PceItem::query()
             ->with([
                 'header:id,pce_number',
                 'shape:id,shape_name',
@@ -26,6 +27,7 @@ class PceItemController extends Controller
                 'materialBellow:id,part_number,material',
                 'materialFlange:id,part_number,material',
                 'materialPipeEnd:id,part_number,material',
+                'detailEjm:id,pce_item_id,total,margin_percent,grand_total',
             ])
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = trim((string) $request->query('q'));
@@ -35,7 +37,13 @@ class PceItemController extends Controller
                         ->orWhereHas('header', fn ($h) => $h->where('pce_number', 'like', '%' . $term . '%'));
                 });
             })
-            ->when($request->filled('pce_header_id'), fn ($q) => $q->where('pce_header_id', (int) $request->query('pce_header_id')))
+            ->when($request->filled('pce_header_id'), fn ($q) => $q->where('pce_header_id', (int) $request->query('pce_header_id')));
+
+        $overallGrandTotal = (clone $baseQuery)
+            ->leftJoin('ejm_detail_ejms as e', 'e.pce_item_id', '=', 'pce_items.id')
+            ->sum(DB::raw('COALESCE(e.grand_total, 0)'));
+
+        $items = $baseQuery
             ->orderByDesc('id')
             ->paginate(20)
             ->withQueryString();
@@ -43,6 +51,7 @@ class PceItemController extends Controller
         return view('pce-order-list.index', [
             'items' => $items,
             'pceHeaders' => PceHeader::query()->orderByDesc('id')->get(['id', 'pce_number']),
+            'overallGrandTotal' => (float) $overallGrandTotal,
         ]);
     }
 
